@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #F7F3EC;
+  --color-text-primary: #1B1B1B;
+  --color-brand: #173528;
+  --color-brand-hover: #214836;
+  --color-accent: #A67C3D;
+  --color-surface: #EEE7DC;
+  --color-border: #D8D1C5;
+  --color-text-secondary: #6C6A67;
+  --color-success: #4F6F52;
+  --color-sold: #8A8A8A;
+  --color-error: #A94442;
+
+  --radius-custom: 16px;
+  --shadow-custom: 0 12px 40px rgba(0,0,0,.06);
+
+  --font-heading: var(--font-cormorant), serif;
+  --font-body: var(--font-inter), sans-serif;
+}
+
+:root {
+  --radius: 16px;
+  --shadow: 0 12px 40px rgba(0,0,0,.06);
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 outline-none;
+  }
+}
