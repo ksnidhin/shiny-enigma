@@ -1,33 +1,43 @@
 import Link from "next/link"
 
-const FOOTER_LINKS = [
-  { label: "Live Watches", href: "/watches" },
-  { label: "Archive", href: "/archive" },
-  { label: "Brands", href: "/brands" },
-  { label: "Authenticity", href: "/authenticity" },
-  { label: "Contact", href: "/contact" },
-  { label: "Condition & Service", href: "/condition-service" },
-  { label: "Shipping & Returns", href: "/shipping-returns" },
-  { label: "FAQ", href: "/faq" },
+const EXPLORE_LINKS = [
+  { label: "New Casio Watches", href: "/collections/casio" },
+  { label: "Japanese Vintage Timepieces", href: "/collections/japanese-vintage" },
+  { label: "Swiss Vintage Timepieces", href: "/collections/swiss-vintage" },
+  { label: "Luxury Chronographs", href: "/collections/all" },
+  { label: "Straps & Accessories", href: "/collections/straps-accessories" },
+  { label: "Sell Your Watch", href: "/pages/sell" },
+]
+
+const POLICY_LINKS = [
+  { label: "Refund Policy", href: "/policies/refund" },
+  { label: "Privacy Policy", href: "/policies/privacy" },
+  { label: "Terms of Service", href: "/policies/terms" },
+  { label: "Shipping Policy", href: "/policies/shipping" },
+  { label: "Contact Information", href: "/policies/contact" },
+  { label: "Authenticity Guarantee", href: "/pages/authenticity" },
 ]
 
 export function Footer() {
   return (
     <footer role="contentinfo" className="border-t border-[var(--color-border)] bg-[var(--color-brand)] text-white mt-auto">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="font-heading text-2xl font-bold tracking-tight">RetroTimeCo</h2>
-            <p className="text-white/80 max-w-sm text-sm leading-relaxed">
-              Curated vintage timepieces, verified for authenticity and function. 
-              Every watch is a specific physical piece with its own history.
+            <h2 className="font-heading text-3xl font-bold tracking-tight">RetroTimeCo<span className="text-[var(--color-accent)]">.</span></h2>
+            <p className="text-white/80 max-w-md text-sm leading-relaxed">
+              The Perfect Destination for New & Pre-owned Watches. Curated rare Japanese & Swiss vintage timepieces, new Casio releases, and premium watch accessories. 100% authentic, verified by expert horologists. Fast shipping across India.
             </p>
+            <div className="pt-2 flex items-center gap-4">
+              <span className="text-xs tracking-wider uppercase font-semibold px-2.5 py-1 bg-white/10 rounded border border-white/20">100% Authentic</span>
+              <span className="text-xs tracking-wider uppercase font-semibold px-2.5 py-1 bg-white/10 rounded border border-white/20">All-India Express Delivery</span>
+            </div>
           </div>
           
           <div>
-            <h3 className="font-semibold mb-4 text-white">Explore</h3>
-            <ul className="space-y-3">
-              {FOOTER_LINKS.slice(0, 5).map((link) => (
+            <h3 className="font-semibold mb-4 text-white uppercase text-xs tracking-wider">Explore Collections</h3>
+            <ul className="space-y-2.5">
+              {EXPLORE_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link 
                     href={link.href}
@@ -41,9 +51,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4 text-white">Policies</h3>
-            <ul className="space-y-3">
-              {FOOTER_LINKS.slice(5).map((link) => (
+            <h3 className="font-semibold mb-4 text-white uppercase text-xs tracking-wider">Policies & Help</h3>
+            <ul className="space-y-2.5">
+              {POLICY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link 
                     href={link.href}
@@ -61,6 +71,10 @@ export function Footer() {
           <p className="text-xs text-white/60">
             &copy; {new Date().getFullYear()} RetroTimeCo. All rights reserved.
           </p>
+          <div className="flex items-center gap-6 text-xs text-white/60">
+            <span>Instagram: @retrotimeco.in</span>
+            <span>Support: help@retrotimeco.in</span>
+          </div>
         </div>
       </div>
     </footer>
