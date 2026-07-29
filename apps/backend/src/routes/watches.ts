@@ -273,7 +273,7 @@ Do not include markdown blocks, just the raw JSON.`
             throw new Error(`HTTP ${response.status}: ${await response.text()}`)
           }
           
-          const data = await response.json()
+          const data = (await response.json()) as any
           const text = data.choices?.[0]?.message?.content
           if (!text) throw new Error("Empty response from OpenRouter")
           
@@ -313,12 +313,12 @@ router.post("/watches/bulk", async (req: Request, res: Response): Promise<void> 
       return
     }
 
-    const { error } = await supabase.from('watches').insert(watches)
-    if (error) {
-      console.error("Bulk insert error:", error)
-      res.status(500).json({ success: false, message: error.message })
-      return
-    }
+    const currentWatches = await WatchStorage.getAll()
+    const newWatches = watches.map(w => ({
+      ...w,
+      id: w.id || `rtc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
+    })) as WatchProduct[]
+    await WatchStorage.saveAll([...currentWatches, ...newWatches])
 
     res.status(200).json({ success: true, message: `Successfully imported ${watches.length} timepieces` })
   } catch (err) {

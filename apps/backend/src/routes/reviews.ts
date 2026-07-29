@@ -26,7 +26,7 @@ router.post("/reviews", async (req: Request, res: Response): Promise<void> => {
 // DELETE /api/reviews/:id
 router.delete("/reviews/:id", async (req: Request, res: Response): Promise<void> => {
   try {
-    const success = await ReviewStorage.delete(req.params.id)
+    const success = await ReviewStorage.delete(req.params.id as string)
     if (success) {
       res.status(200).json({ success: true, message: "Review deleted" })
     } else {
