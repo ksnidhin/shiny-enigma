@@ -22,7 +22,7 @@ async function getHeroSlides() {
       title: "The Perfect Destination for Timeless Watches.",
       subtitle: "India's Premier Watch Haven",
       linkText: "Explore Vintage",
-      linkUrl: "/store"
+      linkUrl: "/collections/all"
     }
   ]
 }
