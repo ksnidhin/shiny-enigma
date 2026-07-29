@@ -1,10 +1,11 @@
 import Link from "next/link"
+import { Camera, Mail, MapPin } from "lucide-react"
 
 const EXPLORE_LINKS = [
-  { label: "New Casio Watches", href: "/collections/casio" },
+  { label: "Casio Watches", href: "/collections/casio" },
   { label: "Japanese Vintage Timepieces", href: "/collections/japanese-vintage" },
   { label: "Swiss Vintage Timepieces", href: "/collections/swiss-vintage" },
-  { label: "Luxury Chronographs", href: "/collections/all" },
+  { label: "HMT Watches", href: "/collections/hmt-watches" },
   { label: "Straps & Accessories", href: "/collections/straps-accessories" },
   { label: "Sell Your Watch", href: "/pages/sell" },
 ]
@@ -28,6 +29,14 @@ export function Footer() {
             <p className="text-white/80 max-w-md text-sm leading-relaxed">
               The Perfect Destination for New & Pre-owned Watches. Curated rare Japanese & Swiss vintage timepieces, new Casio releases, and premium watch accessories. 100% authentic, verified by expert horologists. Fast shipping across India.
             </p>
+            <div className="text-xs text-white/60 flex items-start gap-2 mt-2">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>
+                18, ABC AVENUE, IST FLOOR,<br/>
+                MARKET LANE, KALADIPET,<br/>
+                CHENNAI, Tamil Nadu-600019
+              </span>
+            </div>
             <div className="pt-2 flex items-center gap-4">
               <span className="text-xs tracking-wider uppercase font-semibold px-2.5 py-1 bg-white/10 rounded border border-white/20">100% Authentic</span>
               <span className="text-xs tracking-wider uppercase font-semibold px-2.5 py-1 bg-white/10 rounded border border-white/20">All-India Express Delivery</span>
@@ -72,8 +81,14 @@ export function Footer() {
             &copy; {new Date().getFullYear()} RetroTimeCo. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-xs text-white/60">
-            <span>Instagram: @retrotimeco.in</span>
-            <span>Support: help@retrotimeco.in</span>
+            <a href="https://instagram.com/retrotimeco.in" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors flex items-center gap-1">
+              <Camera className="w-4 h-4" />
+              <span>@retrotimeco.in</span>
+            </a>
+            <a href="mailto:help@retrotimeco.in" className="hover:text-white transition-colors flex items-center gap-1">
+              <Mail className="w-4 h-4" />
+              <span>help@retrotimeco.in</span>
+            </a>
           </div>
         </div>
       </div>

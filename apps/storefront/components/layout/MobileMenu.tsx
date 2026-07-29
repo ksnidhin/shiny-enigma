@@ -7,10 +7,11 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Menu, X } from "lucide-react"
 
 const NAV_LINKS = [
+  { label: "SHOP ALL", href: "/collections/all" },
   { label: "CASIO", href: "/collections/casio" },
   { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
   { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
-  { label: "LUXURY CHRONOGRAPHS", href: "/collections/all" },
+  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
   { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
   { label: "SELL YOUR WATCH", href: "/pages/sell" },
 ]

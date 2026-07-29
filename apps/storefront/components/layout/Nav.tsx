@@ -3,10 +3,11 @@ import { MobileMenu } from "./MobileMenu"
 import { ShoppingBag, Search, User } from "lucide-react"
 
 const NAV_LINKS = [
+  { label: "SHOP ALL", href: "/collections/all" },
   { label: "CASIO", href: "/collections/casio" },
   { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
   { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
-  { label: "LUXURY CHRONOGRAPHS", href: "/collections/all" },
+  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
   { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
   { label: "SELL YOUR WATCH", href: "/pages/sell" },
 ]
@@ -45,12 +46,10 @@ export function Nav() {
 
         {/* Action Icons */}
         <div className="flex items-center space-x-3 md:space-x-4">
-          <button className="p-2 text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-full transition-colors" aria-label="Search">
+          <Link href="/search" className="p-2 text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-full transition-colors" aria-label="Search">
             <Search className="h-5 w-5" />
-          </button>
-          <Link href="/account/login" className="p-2 text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-full transition-colors hidden sm:block" aria-label="Account">
-            <User className="h-5 w-5" />
           </Link>
+
           <Link href="/cart" className="p-2 text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-full transition-colors relative" aria-label="Cart">
             <ShoppingBag className="h-5 w-5" />
           </Link>

@@ -40,7 +40,7 @@ export function WatchCatalogGrid({
 
     // Condition filter
     if (selectedCondition !== "all") {
-      result = result.filter(w => w.condition_grade.toLowerCase() === selectedCondition.toLowerCase())
+      result = result.filter(w => (w.condition_grade || "").toLowerCase() === selectedCondition.toLowerCase())
     }
 
     // Price filter
@@ -293,9 +293,14 @@ export function WatchCatalogGrid({
                       fill
                       className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
-                    {product.badge && (
+                    {product.badge && product.in_stock && (
                       <span className="absolute top-3 left-3 bg-[var(--color-brand)] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
                         {product.badge}
+                      </span>
+                    )}
+                    {!product.in_stock && (
+                      <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
+                        Sold Out
                       </span>
                     )}
                     <div className="absolute top-3 right-3 flex flex-col gap-1.5">
@@ -313,7 +318,7 @@ export function WatchCatalogGrid({
                     <div>
                       <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--color-accent)] uppercase tracking-wider mb-1">
                         <span>{product.brand}</span>
-                        <span>{product.era_label.split(" ")[0]}</span>
+                        <span>{product.era_label ? product.era_label.split(" ")[0] : ""}</span>
                       </div>
                       <Link href={`/products/${product.slug}`}>
                         <h3 className="font-heading text-lg font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors line-clamp-2 leading-snug">

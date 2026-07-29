@@ -10,8 +10,13 @@ app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+import { heroRouter } from "./routes/hero"
+import reviewsRouter from "./routes/reviews"
+
 // API Routes
 app.use("/api", watchRoutes)
+app.use("/api", heroRouter)
+app.use("/api", reviewsRouter)
 
 // Health Check endpoint
 app.get("/health", (_req: Request, res: Response) => {

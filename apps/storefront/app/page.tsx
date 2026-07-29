@@ -2,92 +2,91 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, ShieldCheck, Truck, Clock, Award, Star, Heart } from "lucide-react"
 import { FeaturedWatchesSection } from "@/components/store/FeaturedWatchesSection"
+import { HeroSlider } from "@/components/store/HeroSlider"
+import { DynamicReviews } from "@/components/store/DynamicReviews"
+import { InstagramFeed } from "@/components/store/InstagramFeed"
+import { fetchStats } from "@/lib/api"
+
+async function getHeroSlides() {
+  try {
+    const res = await fetch("http://localhost:9000/api/hero", { next: { revalidate: 60 } })
+    const json = await res.json()
+    if (json.success && json.data.length > 0) return json.data
+  } catch (e) {
+    // fallback
+  }
+  return [
+    {
+      id: "default",
+      imageUrl: "/hero_vintage_watch_1785170825322.jpg",
+      title: "The Perfect Destination for Timeless Watches.",
+      subtitle: "India's Premier Watch Haven",
+      linkText: "Explore Vintage",
+      linkUrl: "/store"
+    }
+  ]
+}
 
 const COLLECTIONS = [
   {
-    title: "New Casio Watches",
-    subtitle: "199+ Models Online",
+    id: "casio",
+    title: "Casio Watches",
+    subtitle: "New & Retro Models",
     image: "/watch_casio_edifice_1785170834699.jpg",
     href: "/collections/casio",
     badge: "Official & Authenticated"
   },
   {
+    id: "japanese-vintage",
     title: "Japanese Vintage",
-    subtitle: "Seiko, Citizen & Orient from Tokyo",
+    subtitle: "Seiko, Citizen & Orient",
     image: "/watch_seiko_vintage_1785170846705.jpg",
     href: "/collections/japanese-vintage",
     badge: "Rare Finds"
   },
   {
+    id: "swiss-vintage",
     title: "Swiss Vintage",
-    subtitle: "Maison Horlogère — 81 Authenticated Pieces",
+    subtitle: "Maison Horlogère",
     image: "/watch_swiss_vintage_1785170866472.jpg",
     href: "/collections/swiss-vintage",
     badge: "Collector Grade"
   },
   {
-    title: "Luxury Chronographs",
-    subtitle: "Precision Racing & Pilot Timepieces",
-    image: "/watch_casio_edifice_1785170834699.jpg",
-    href: "/collections/all",
+    id: "hmt-watches",
+    title: "HMT Watches",
+    subtitle: "Heritage Indian Timepieces",
+    image: "/hmt_vintage_watch_1785257285844.jpg",
+    href: "/collections/hmt-watches",
     badge: "Bestseller"
   },
   {
+    id: "straps-accessories",
     title: "Straps & Clasps",
-    subtitle: "Premium Leather, NATO & Butterfly Clasps",
+    subtitle: "Premium Leather & NATO",
     image: "/watch_accessories_1785170889478.jpg",
     href: "/collections/straps-accessories",
     badge: "From Rs. 349"
+  },
+  {
+    id: "storage",
+    title: "Watch Boxes & Storage",
+    subtitle: "Solid Wood & Travel Cases",
+    image: "/watch_accessories_1785170889478.jpg",
+    href: "/collections/storage",
+    badge: "Coming Soon"
   }
 ]
 
-export default function Home() {
+export default async function Home() {
+  const statsRes = await fetchStats()
+  const breakdown = statsRes?.data?.collection_breakdown || {}
+  const slides = await getHeroSlides()
+
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative w-full bg-[#111] text-white overflow-hidden py-20 lg:py-32">
-        <div className="absolute inset-0 opacity-40 mix-blend-luminosity">
-          <Image 
-            src="/hero_vintage_watch_1785170825322.jpg" 
-            alt="Vintage Japanese Automatic Watch" 
-            fill 
-            className="object-cover object-center"
-            priority
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        
-        <div className="container relative mx-auto px-4 md:px-6 lg:px-8 flex flex-col items-start max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-6">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] animate-pulse" />
-            <span className="text-xs font-medium tracking-wider uppercase">India&apos;s Premier Watch Haven</span>
-          </div>
-          
-          <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            The Perfect Destination for <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600">Timeless Watches</span>.
-          </h1>
-          
-          <p className="text-lg sm:text-xl text-white/80 font-light max-w-2xl mb-10 leading-relaxed">
-            Explore rare Japanese &amp; Swiss vintage timepieces sourced directly from Tokyo &amp; Geneva, alongside the complete lineup of new Casio models and premium straps. Every piece 100% authenticated.
-          </p>
-          
-          <div className="flex flex-wrap items-center gap-4">
-            <Link 
-              href="/collections/japanese-vintage"
-              className="px-8 py-4 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-medium rounded-full transition-all shadow-lg hover:shadow-xl flex items-center gap-3 text-sm tracking-wider uppercase"
-            >
-              <span>Explore Vintage</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link 
-              href="/collections/casio"
-              className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-medium rounded-full backdrop-blur-md border border-white/20 transition-all text-sm tracking-wider uppercase"
-            >
-              Shop New Casio (199+)
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSlider initialSlides={slides} />
+
 
       {/* Trust Badges */}
       <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] py-8">
@@ -158,16 +157,16 @@ export default function Home() {
               
               <div className="p-6 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
                 <div>
-                  <h3 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors">
+                  <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
                     {col.title}
                   </h3>
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-1 font-medium">
-                    {col.subtitle}
+                  <p className="text-sm text-[var(--color-text-secondary)] font-medium">
+                    {breakdown[col.id] > 0 ? `${breakdown[col.id]} Pieces` : col.subtitle}
                   </p>
                 </div>
                 
                 <div className="mt-6 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
-                  <span>Explore Collection</span>
+                  <span>Join Waitlist</span>
                   <div className="w-8 h-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all">
                     <ArrowRight className="w-4 h-4" />
                   </div>
@@ -179,7 +178,7 @@ export default function Home() {
       </section>
 
       {/* Dynamic Featured Watches Section */}
-      <FeaturedWatchesSection />
+      {/* <FeaturedWatchesSection /> - Disabled for Waitlist Phase */}
 
       {/* Sell / Consign Spotlight */}
       <section className="py-20 container mx-auto px-4 md:px-6 lg:px-8">
@@ -205,23 +204,29 @@ export default function Home() {
           </div>
 
           <div className="w-full lg:w-1/3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 relative z-10 space-y-4">
-            <div className="flex items-center gap-3 text-amber-300">
-              <Star className="w-5 h-5 fill-amber-300" />
-              <Star className="w-5 h-5 fill-amber-300" />
-              <Star className="w-5 h-5 fill-amber-300" />
-              <Star className="w-5 h-5 fill-amber-300" />
-              <Star className="w-5 h-5 fill-amber-300" />
-              <span className="text-white font-bold ml-1 text-sm">4.9 / 5.0</span>
-            </div>
-            <p className="text-xs text-white/90 italic leading-relaxed">
-              &quot;I bought a 1972 King Seiko from RetroTimeCo. Not only was the condition pristine, but the timekeeping after their in-house regulation was spot on (+2 sec/day). Best vintage watch experience in India!&quot;
+            <h3 className="font-heading text-xl font-bold text-white mb-2">Sell your collection</h3>
+            <p className="text-xs text-white/90 leading-relaxed">
+              We specialize in sourcing and restoring vintage timepieces. If you have a collection or a single piece you'd like to part with, our horologists will offer you a fair market valuation.
             </p>
-            <div className="text-[11px] text-white/60 font-semibold uppercase tracking-wider">
-              — Siddharth R., Collector from Bangalore
-            </div>
           </div>
         </div>
       </section>
+
+      {/* Dynamic Community Reviews Section */}
+      <section className="py-20 bg-[var(--color-bg-primary)]">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-[var(--color-brand)] font-bold tracking-widest uppercase text-xs">Community Voices</span>
+            <h2 className="font-heading text-3xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mt-3">
+              Trusted by Collectors
+            </h2>
+          </div>
+          <DynamicReviews />
+        </div>
+      </section>
+
+      {/* Instagram Integration */}
+      <InstagramFeed />
     </div>
   );
 }

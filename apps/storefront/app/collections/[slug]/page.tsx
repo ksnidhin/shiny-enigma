@@ -10,7 +10,7 @@ const COLLECTION_META: Record<string, { title: string; subtitle: string }> = {
   },
   "japanese-vintage": {
     title: "Japanese Vintage Timepieces",
-    subtitle: "From Tokyo to your wrist. Curated King Seiko, Grand Seiko, Citizen Bullhead chronographs, and Orient Super Compressors from the 1960s and 1970s Golden Era. Fully regulated in Mumbai."
+    subtitle: "From Tokyo to your wrist. Curated King Seiko, Grand Seiko, Citizen Bullhead chronographs, and Orient Super Compressors from the 1960s and 1970s Golden Era. Fully regulated in Chennai."
   },
   "swiss-vintage": {
     title: "Swiss Vintage Timepieces — Maison Horlogère",
@@ -23,6 +23,10 @@ const COLLECTION_META: Record<string, { title: string; subtitle: string }> = {
   "straps-accessories": {
     title: "Straps, Clasps & Horological Accessories",
     subtitle: "Preserve and customize your timepieces. High precision solid brass & steel butterfly deployant clasps, seatbelt weave NATO straps, and handmade Italian leather bands."
+  },
+  "hmt-watches": {
+    title: "HMT Watches",
+    subtitle: "Heritage Indian Timepieces. Rare, vintage, and fully restored hand-wound mechanical watches."
   },
   "all": {
     title: "The Complete Horological Archive",

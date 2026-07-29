@@ -74,7 +74,7 @@ export default function CartPage() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-amber-300">
-                🎉 FREE Insured Express Shipping Sourced &amp; Verified by RetroTimeCo Mumbai!
+                🎉 FREE Insured Express Shipping Sourced &amp; Verified by RetroTimeCo Chennai!
               </p>
               <p className="text-[11px] text-white/80">
                 All-India delivery ready to ship within 24 hours.

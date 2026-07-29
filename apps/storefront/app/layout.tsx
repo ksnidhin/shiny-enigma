@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Playfair_Display, Outfit } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
 
-const cormorant = Cormorant_Garamond({
-  weight: ["300", "400", "500", "600", "700"],
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-cormorant",
+  variable: "--font-playfair",
   display: "swap",
 });
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-outfit",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "RetroTimeCo",
-  description: "Curated vintage timepieces, verified for authenticity and function.",
+  title: "RetroTimeCo | Buy Vintage Seiko, Casio & Swiss Watches in India",
+  description: "Shop curated Japanese & Swiss vintage timepieces in India. Fully serviced, 100% authentic watches with express delivery. Browse rare Seiko, Casio, and luxury chronographs.",
 };
 
 export default function RootLayout({
@@ -28,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${outfit.variable}`}>
       <body className="antialiased min-h-screen flex flex-col selection:bg-[var(--color-brand)] selection:text-white">
         <Nav />
         <main className="flex-1 flex flex-col">

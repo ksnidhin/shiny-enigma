@@ -23,7 +23,7 @@ const POLICIES: Record<string, PolicyData> = {
           <Truck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block text-sm mb-1">100% Insured All-India Delivery</span>
-            Every timepiece dispatched from our Mumbai workshop is fully insured against transit damage, loss, or theft until it is safely signed for at your doorstep.
+            Every timepiece dispatched from our Chennai workshop is fully insured against transit damage, loss, or theft until it is safely signed for at your doorstep.
           </div>
         </div>
 
@@ -157,7 +157,7 @@ const POLICIES: Record<string, PolicyData> = {
         </p>
         <h3 className="font-heading text-base font-bold text-[var(--color-text-primary)] pt-2">1. Vintage Mechanical Tolerances</h3>
         <p>
-          Unless labeled as &quot;Brand New&quot; (such as modern Casio releases), our timepieces from the 1960s, 1970s, and 1980s (Seiko, Citizen, HMT, Swiss models) are historical mechanical devices. While our Mumbai workshop regulates movements to high standards (+/- 2 to 15 seconds per day), vintage mechanical watches do not keep quartz-level atomic time.
+          Unless labeled as &quot;Brand New&quot; (such as modern Casio releases), our timepieces from the 1960s, 1970s, and 1980s (Seiko, Citizen, HMT, Swiss models) are historical mechanical devices. While our Chennai workshop regulates movements to high standards (+/- 2 to 15 seconds per day), vintage mechanical watches do not keep quartz-level atomic time.
         </p>
         <h3 className="font-heading text-base font-bold text-[var(--color-text-primary)] pt-2">2. Water Resistance Limitations</h3>
         <p>
@@ -168,7 +168,7 @@ const POLICIES: Record<string, PolicyData> = {
   },
   contact: {
     title: "Workshop & Customer Support Desk",
-    subtitle: "Get in touch with our master horologists and logistics coordinators in Mumbai.",
+    subtitle: "Get in touch with our master horologists and logistics coordinators in Chennai.",
     icon: "phone",
     content: (
       <div className="space-y-6 text-sm leading-relaxed text-[var(--color-text-secondary)]">
@@ -184,10 +184,10 @@ const POLICIES: Record<string, PolicyData> = {
 
           <div className="p-6 bg-white border border-[var(--color-border)] rounded-2xl shadow-sm space-y-2">
             <MapPin className="w-6 h-6 text-[var(--color-brand)]" />
-            <h4 className="font-bold text-base text-[var(--color-text-primary)]">Mumbai Workshop</h4>
+            <h4 className="font-bold text-base text-[var(--color-text-primary)]">Chennai Workshop</h4>
             <p className="text-xs text-gray-500">Our central inspection, restoration, and secure vault storage facility.</p>
             <address className="not-italic text-xs text-gray-700 font-medium">
-              14/B Heritage Chambers, Bandra West, Mumbai 400050, Maharashtra, India
+              18, ABC AVENUE, IST FLOOR,<br />MARKET LANE, KALADIPET,<br />CHENNAI, Tamil Nadu-600019
             </address>
           </div>
         </div>

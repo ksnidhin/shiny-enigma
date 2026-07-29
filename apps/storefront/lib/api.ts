@@ -215,9 +215,65 @@ export async function deleteWatch(id: string): Promise<{ success: boolean; messa
   try {
     const res = await fetch(`${API_BASE}/watches/${id}`, {
       method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete timepiece");
+    return await res.json();
+  } catch (error) {
+    return { success: false, message: (error as Error).message };
+  }
+}
+
+export async function uploadImage(file: File): Promise<{ success: boolean; url?: string; message?: string }> {
+  try {
+    const formData = new FormData()
+    formData.append("image", file)
+    const res = await fetch(`${API_BASE}/upload`, {
+      method: "POST",
+      body: formData,
     })
+    if (!res.ok) throw new Error("Upload failed")
     return await res.json()
-  } catch (err) {
-    return { success: false, message: "Could not connect to custom backend server on port 9000." }
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+}
+
+export async function generateWatchDetails(name: string, year?: string): Promise<{ success: boolean; data?: Partial<WatchProduct>; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/watches/ai-generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, year }),
+    })
+    if (!res.ok) throw new Error("AI Generation failed")
+    return await res.json()
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+}
+
+export async function importWatchesBulk(watches: Partial<WatchProduct>[]): Promise<{ success: boolean; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/watches/bulk`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ watches }),
+    })
+    if (!res.ok) throw new Error("Bulk import failed")
+    return await res.json()
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
+  }
+}
+
+export async function fetchStats(): Promise<{ success: boolean; data?: any; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/stats`, {
+      next: { revalidate: 60 } // Cache for 60 seconds
+    })
+    if (!res.ok) throw new Error("Failed to fetch stats")
+    return await res.json()
+  } catch (error) {
+    return { success: false, message: (error as Error).message }
   }
 }

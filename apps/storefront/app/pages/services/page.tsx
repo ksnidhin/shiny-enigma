@@ -5,7 +5,7 @@ import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Sell & Consign Your Watch — RetroTimeCo",
-  description: "Get instant valuations for your vintage timepieces or list them on consignment with our Mumbai collectors network.",
+  description: "Get instant valuations for your vintage timepieces or list them on consignment with our Chennai collectors network.",
 }
 
 export default function ServicesPage() {
@@ -59,7 +59,9 @@ export default function ServicesPage() {
 
             <div className="pt-6 border-t border-black/5 relative z-10">
               <Link 
-                href="/pages/sell" 
+                href="https://wa.me/919171988875?text=Hi!%20I%20would%20like%20to%20sell%20my%20watch%20to%20you." 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full py-4 rounded-2xl bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <span>Submit Watch for Valuation</span>
@@ -102,7 +104,9 @@ export default function ServicesPage() {
 
             <div className="pt-6 border-t border-white/10 relative z-10">
               <Link 
-                href="/pages/sell" 
+                href="https://wa.me/919171988875?text=Hi!%20I%20would%20like%20to%20list%20my%20watch%20on%20consignment%20with%20you." 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full py-4 rounded-2xl bg-[var(--color-accent)] hover:bg-[#b88c47] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <span>List Watch on Consignment</span>
@@ -116,7 +120,7 @@ export default function ServicesPage() {
         <div className="bg-white rounded-2xl border border-[var(--color-border)] p-8 shadow-sm flex flex-col md:flex-row items-center justify-around gap-6 text-center md:text-left text-xs font-semibold text-[var(--color-text-primary)]">
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-[var(--color-brand)] flex-shrink-0" />
-            <span>Workshop &amp; Storage: Bandra West, Mumbai 400050</span>
+            <span>Workshop &amp; Storage: Bandra West, Chennai 400050</span>
           </div>
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-[var(--color-brand)] flex-shrink-0" />

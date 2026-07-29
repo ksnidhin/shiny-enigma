@@ -4,7 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { WatchProduct } from "@/lib/api"
-import { ShieldCheck, Truck, Clock, Award, Check, Heart, Share2, AlertCircle, ArrowRight, RefreshCw, Star, ShoppingBag, MessageCircle } from "lucide-react"
+import { ShieldCheck, Truck, Clock, Award, Check, Heart, Share2, AlertCircle, ArrowRight, RefreshCw, Star, ShoppingBag, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface WatchProductDetailProps {
   watch: WatchProduct;
@@ -31,6 +31,20 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
   }
 
+  const handlePrevImage = () => {
+    if (!watch.gallery_images || watch.gallery_images.length <= 1) return;
+    const currentIndex = watch.gallery_images.indexOf(activeImage);
+    const prevIndex = currentIndex === 0 ? watch.gallery_images.length - 1 : currentIndex - 1;
+    setActiveImage(watch.gallery_images[prevIndex]);
+  }
+
+  const handleNextImage = () => {
+    if (!watch.gallery_images || watch.gallery_images.length <= 1) return;
+    const currentIndex = watch.gallery_images.indexOf(activeImage);
+    const nextIndex = (currentIndex + 1) % watch.gallery_images.length;
+    setActiveImage(watch.gallery_images[nextIndex]);
+  }
+
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12">
       {/* Breadcrumb Navigation */}
@@ -46,7 +60,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         {/* Left: Photography Showcase */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="relative h-[450px] sm:h-[600px] w-full bg-[#EAE4DB] rounded-3xl overflow-hidden border border-[var(--color-border)] shadow-[var(--shadow-custom)]">
+          <div className="group relative h-[450px] sm:h-[600px] w-full bg-[#EAE4DB] rounded-3xl overflow-hidden border border-[var(--color-border)] shadow-[var(--shadow-custom)]">
             <Image
               src={activeImage}
               alt={watch.name}
@@ -54,9 +68,14 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
               className="object-cover object-center transition-all duration-500"
               priority
             />
-            {watch.badge && (
+            {watch.badge && watch.in_stock && (
               <span className="absolute top-4 left-4 bg-[var(--color-brand)] text-white text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-md">
                 {watch.badge}
+              </span>
+            )}
+            {!watch.in_stock && (
+              <span className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-md">
+                Sold Out
               </span>
             )}
             <div className="absolute top-4 right-4 flex flex-col gap-2">
@@ -75,6 +94,22 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
+            {watch.gallery_images && watch.gallery_images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-md transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-md transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Thumbnails */}
@@ -109,7 +144,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
             <div className="flex flex-col items-center gap-1.5">
               <Clock className="w-6 h-6 text-[var(--color-brand)]" />
               <span className="text-xs font-bold uppercase tracking-wider">Serviced & Regulated</span>
-              <span className="text-[10px] text-[var(--color-text-secondary)]">Mumbai Workshop Certified</span>
+              <span className="text-[10px] text-[var(--color-text-secondary)]">Chennai Workshop Certified</span>
             </div>
           </div>
         </div>
@@ -165,25 +200,45 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
 
           {/* Purchase Actions */}
           <div className="space-y-3 pt-2">
-            <button
-              onClick={handleBuyNowWhatsApp}
-              className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>Buy Now via WhatsApp — Rs. {watch.price.toLocaleString("en-IN")}</span>
-            </button>
+            {watch.in_stock ? (
+              <>
+                <button
+                  onClick={handleBuyNowWhatsApp}
+                  className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Buy Now via WhatsApp — Rs. {watch.price.toLocaleString("en-IN")}</span>
+                </button>
 
-            <button
-              onClick={handleReserve}
-              className="w-full py-3.5 rounded-2xl font-bold uppercase tracking-wider text-xs border-2 border-[var(--color-brand)] text-[var(--color-brand)] hover:bg-[var(--color-brand)] hover:text-white transition-all flex items-center justify-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Inquire / Reserve via WhatsApp (24h Hold)</span>
-            </button>
+                <button
+                  onClick={handleReserve}
+                  className="w-full py-3.5 rounded-2xl font-bold uppercase tracking-wider text-xs border-2 border-[var(--color-brand)] text-[var(--color-brand)] hover:bg-[var(--color-brand)] hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Inquire / Reserve via WhatsApp (24h Hold)</span>
+                </button>
 
-            <p className="text-[11px] text-center text-[var(--color-text-secondary)] font-medium">
-              ✨ Ready to Ship Today — Insured Express All-India Delivery by RetroTimeCo Mumbai.
-            </p>
+                <p className="text-[11px] text-center text-[var(--color-text-secondary)] font-medium">
+                  ✨ Ready to Ship Today — Insured Express All-India Delivery by RetroTimeCo Chennai.
+                </p>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    const text = `Hi RetroTimeCo! I noticed this watch is sold out:\n\n*${watch.name}* (Ref: ${watch.reference_number})\n\nCould you please help me source a similar piece?`;
+                    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
+                  }}
+                  className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-gray-800 hover:bg-black text-white shadow-gray-600/20"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Sold Out - Contact for Sourcing</span>
+                </button>
+                <p className="text-[11px] text-center text-[var(--color-text-secondary)] font-medium">
+                  This piece has been acquired by a collector. We can help source a similar timepiece.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Tabbed Specifications & Verification Report */}
@@ -245,7 +300,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                   <span>100% Guaranteed Genuine Horology</span>
                 </div>
                 <p className="leading-relaxed font-light">
-                  This timepiece has been physically inspected, opened, and verified under magnification by our senior watchmakers in Mumbai. All case serial numbers, movement stamps, and dial fonts conform to original factory specifications.
+                  This timepiece has been physically inspected, opened, and verified under magnification by our senior watchmakers in Chennai. All case serial numbers, movement stamps, and dial fonts conform to original factory specifications.
                 </p>
                 <div className="pt-2 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 text-emerald-800">
                   <Check className="w-3.5 h-3.5" />

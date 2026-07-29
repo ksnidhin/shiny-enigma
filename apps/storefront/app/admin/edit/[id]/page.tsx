@@ -1,10 +1,10 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
-import { fetchWatchBySlug, updateWatch, WatchProduct } from "@/lib/api"
-import { ArrowLeft, Save, ShieldCheck, Watch, AlertCircle, CheckCircle2 } from "lucide-react"
+import { fetchWatchBySlug, updateWatch, uploadImage, generateWatchDetails } from "@/lib/api"
+import { ArrowLeft, Save, AlertCircle, CheckCircle2, Image as ImageIcon, UploadCloud, X } from "lucide-react"
 
 export default function EditTimepiecePage() {
   const router = useRouter()
@@ -16,6 +16,11 @@ export default function EditTimepiecePage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<boolean>(false)
   const [formData, setFormData] = useState<any>(null)
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false)
+  const [generatingAI, setGeneratingAI] = useState<boolean>(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  const [newImageUrl, setNewImageUrl] = useState("")
 
   useEffect(() => {
     async function load() {
@@ -31,18 +36,89 @@ export default function EditTimepiecePage() {
     load()
   }, [idOrSlug])
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    
+    setUploadingImage(true)
+    const currentImages = formData.gallery_images || [formData.image].filter(Boolean)
+    
+    for (let i = 0; i < files.length; i++) {
+      const res = await uploadImage(files[i])
+      if (res.success && res.url) {
+        currentImages.push(res.url)
+      } else {
+        alert("Failed to upload an image: " + res.message)
+      }
+    }
+    
+    setFormData((prev: any) => ({
+      ...prev,
+      image: currentImages[0] || "",
+      gallery_images: currentImages
+    }))
+    setUploadingImage(false)
+  }
+
+  const handleAddImageUrl = () => {
+    if (!newImageUrl.trim()) return
+    const currentImages = formData.gallery_images || [formData.image].filter(Boolean)
+    currentImages.push(newImageUrl.trim())
+    setFormData((prev: any) => ({
+      ...prev,
+      image: currentImages[0] || "",
+      gallery_images: currentImages
+    }))
+    setNewImageUrl("")
+  }
+
+  const handleRemoveImage = (index: number) => {
+    const currentImages = [...(formData.gallery_images || [])]
+    currentImages.splice(index, 1)
+    setFormData((prev: any) => ({
+      ...prev,
+      image: currentImages[0] || "",
+      gallery_images: currentImages
+    }))
+  }
+
+  const handleAIGenerate = async () => {
+    if (!formData?.name) {
+      alert("Please enter a Title first!")
+      return
+    }
+    setGeneratingAI(true)
+    setAiError(null)
+    const res = await generateWatchDetails(formData.name, "vintage")
+    setGeneratingAI(false)
+    if (res.success && res.data) {
+      setFormData((prev: any) => ({ ...prev, ...res.data }))
+    } else {
+      setAiError(res.message || "Failed to generate specs.")
+    }
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev: any) => ({ ...prev, [name]: checked }))
-    } else if (type === "number") {
-      setFormData((prev: any) => ({ ...prev, [name]: parseFloat(value) || 0 }))
-    } else if (name.startsWith("specs.")) {
+    if (name.startsWith("specs.")) {
       const specKey = name.replace("specs.", "")
-      setFormData((prev: any) => ({ ...prev, specs: { ...prev.specs, [specKey]: value } }))
+      if (type === "checkbox") {
+        const checked = (e.target as HTMLInputElement).checked
+        setFormData((prev: any) => ({ ...prev, specs: { ...prev.specs, [specKey]: checked } }))
+      } else if (type === "number") {
+        setFormData((prev: any) => ({ ...prev, specs: { ...prev.specs, [specKey]: parseFloat(value) || 0 } }))
+      } else {
+        setFormData((prev: any) => ({ ...prev, specs: { ...prev.specs, [specKey]: value } }))
+      }
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: value }))
+      if (type === "checkbox") {
+        const checked = (e.target as HTMLInputElement).checked
+        setFormData((prev: any) => ({ ...prev, [name]: checked }))
+      } else if (type === "number") {
+        setFormData((prev: any) => ({ ...prev, [name]: parseFloat(value) || 0 }))
+      } else {
+        setFormData((prev: any) => ({ ...prev, [name]: value }))
+      }
     }
   }
 
@@ -61,198 +137,333 @@ export default function EditTimepiecePage() {
         router.push("/admin")
       }, 1500)
     } else {
-      setError(res.message || "Failed to update watch on server.")
+      setError(res.message || "Failed to save product.")
     }
   }
 
   if (loading) {
-    return <div className="p-12 text-center font-mono text-gray-500">Loading timepiece details...</div>
+    return <div className="p-8 text-center text-[#5C5F62]">Loading product details...</div>
   }
 
   if (!formData) {
     return (
-      <div className="p-12 text-center space-y-4">
-        <div className="text-red-400 font-bold">Timepiece not found in storage archive.</div>
-        <Link href="/admin" className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm inline-block">Back to Archive</Link>
+      <div className="p-8 text-center space-y-4">
+        <div className="text-red-500 font-medium">Product not found.</div>
+        <Link href="/admin" className="px-4 py-2 bg-[#202223] text-white rounded-md text-sm inline-block">Back to Products</Link>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Inventory Archive</span>
-        </Link>
-        <div className="text-xs font-mono text-[#d4af37]">Editing Ref: {formData.reference_number}</div>
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto pb-20">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/admin" className="p-2 border border-[#D2D5D9] rounded-md hover:bg-[#F4F6F8] transition-colors">
+            <ArrowLeft className="w-5 h-5 text-[#5C5F62]" />
+          </Link>
+          <h1 className="text-xl font-bold text-[#202223]">{formData.name}</h1>
+        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-[#008060] hover:bg-[#006e52] text-white px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving..." : "Save"}
+        </button>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
-          <span className="text-sm">{error}</span>
+        <div className="mb-6 p-4 rounded-md bg-[#FFF4F4] border border-[#DE3618] text-[#DE3618] flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-400" />
-          <span className="text-sm font-bold">Timepiece updated successfully! Redirecting...</span>
+        <div className="mb-6 p-4 rounded-md bg-[#F1F8F5] border border-[#008060] text-[#008060] flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">Product saved successfully! Redirecting...</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-[#161b22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-xl">
-        <div className="border-b border-gray-800 pb-5">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2.5">
-            <Watch className="w-6 h-6 text-[#d4af37]" />
-            <span>Edit Timepiece: {formData.name}</span>
-          </h1>
-        </div>
-
-        {/* Identity & Pricing */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#d4af37] font-mono">1. Identity & Pricing</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Column (Main Info) */}
+        <div className="md:col-span-2 space-y-6">
+          
+          {/* AI Auto Fill */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Watch Full Name *</label>
+              <h3 className="text-sm font-semibold text-[#202223]">✨ AI Auto-Fill</h3>
+              <p className="text-xs text-[#5C5F62] mt-1">Generate full specifications using Claude 3.5 Sonnet.</p>
+              {aiError && <p className="text-xs text-red-500 mt-1">{aiError}</p>}
+            </div>
+            <button
+              type="button"
+              onClick={handleAIGenerate}
+              disabled={generatingAI}
+              className="px-3 py-1.5 bg-[#F4F6F8] border border-[#D2D5D9] hover:bg-[#EBEBEB] text-[#202223] font-medium rounded-md text-sm transition-colors disabled:opacity-50"
+            >
+              {generatingAI ? "Generating..." : "Auto-Fill"}
+            </button>
+          </div>
+
+          {/* Title & Description */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#202223] mb-1">Title</label>
               <input
                 type="text"
                 name="name"
                 required
                 value={formData.name || ""}
                 onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] focus:outline-none focus:ring-2 focus:ring-[#008060]/20 focus:border-[#008060]"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Brand *</label>
-              <input
-                type="text"
-                name="brand"
-                required
-                value={formData.brand || ""}
+              <label className="block text-sm font-medium text-[#202223] mb-1">Description</label>
+              <textarea
+                name="description"
+                rows={4}
+                value={formData.description || ""}
                 onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] focus:outline-none focus:ring-2 focus:ring-[#008060]/20 focus:border-[#008060]"
               />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Price in Rupees (Rs.) *</label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">Rs.</span>
+          {/* Media */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm space-y-4">
+            <h2 className="text-sm font-semibold text-[#202223]">Media</h2>
+            
+            {/* Gallery Grid */}
+            <div className="grid grid-cols-4 gap-4">
+              {(formData.gallery_images || []).map((imgUrl: string, idx: number) => (
+                <div key={idx} className="relative aspect-square border border-[#D2D5D9] rounded-md overflow-hidden group">
+                  <img src={imgUrl} alt="Product media" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-1 right-1 bg-white rounded-md p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3 text-[#202223]" />
+                  </button>
+                  {idx === 0 && (
+                    <div className="absolute bottom-1 left-1 bg-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm border border-[#D2D5D9]">
+                      Main
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {/* Upload Button */}
+              <label className="aspect-square border border-dashed border-[#D2D5D9] rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-[#F4F6F8] transition-colors relative">
+                {uploadingImage ? (
+                  <span className="text-xs font-medium text-[#5C5F62]">Uploading...</span>
+                ) : (
+                  <>
+                    <UploadCloud className="w-6 h-6 text-[#5C5F62] mb-1" />
+                    <span className="text-xs font-medium text-[#5C5F62]">Add files</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </>
+                )}
+              </label>
+            </div>
+
+            {/* URL Input */}
+            <div className="flex gap-2 pt-2">
+              <input
+                type="url"
+                placeholder="Add image from URL"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                className="flex-1 border border-[#D2D5D9] rounded-md px-3 py-1.5 text-sm text-[#202223] focus:outline-none focus:border-[#008060]"
+              />
+              <button
+                type="button"
+                onClick={handleAddImageUrl}
+                className="px-3 py-1.5 bg-[#F4F6F8] border border-[#D2D5D9] hover:bg-[#EBEBEB] text-[#202223] font-medium rounded-md text-sm transition-colors"
+              >
+                Add URL
+              </button>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm">
+            <h2 className="text-sm font-semibold text-[#202223] mb-4">Pricing</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Price (Rs.)</label>
                 <input
                   type="number"
                   name="price"
                   required
                   value={formData.price || 0}
                   onChange={handleChange}
-                  className="w-full bg-[#0d1117] border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#d4af37]"
+                  className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] focus:outline-none focus:border-[#008060]"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Original Price (Rs.)</label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">Rs.</span>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Compare-at price</label>
                 <input
                   type="number"
                   name="original_price"
-                  value={formData.original_price || 0}
+                  value={formData.original_price || ""}
                   onChange={handleChange}
-                  className="w-full bg-[#0d1117] border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                  className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] focus:outline-none focus:border-[#008060]"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Specifications */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm">
+            <h2 className="text-sm font-semibold text-[#202223] mb-4">Specifications</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Era Label</label>
+                <input type="text" name="era_label" value={formData.era_label || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Condition Grade</label>
+                <select name="condition_grade" value={formData.condition_grade || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] bg-white">
+                  <option value="new">New / Unworn</option>
+                  <option value="mint">Mint</option>
+                  <option value="excellent">Excellent</option>
+                  <option value="good">Good</option>
+                  <option value="fair">Fair</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Movement Caliber</label>
+                <input type="text" name="specs.movement_caliber" value={formData.specs?.movement_caliber || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Case Material</label>
+                <input type="text" name="specs.case_material" value={formData.specs?.case_material || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Case Size (mm)</label>
+                <input type="number" name="specs.case_size_mm" value={formData.specs?.case_size_mm || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Lug Width (mm)</label>
+                <input type="number" name="specs.lug_width_mm" value={formData.specs?.lug_width_mm || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Crystal Type</label>
+                <input type="text" name="specs.crystal_type" value={formData.specs?.crystal_type || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Water Resistance</label>
+                <input type="text" name="specs.water_resistance" value={formData.specs?.water_resistance || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Measured Accuracy</label>
+                <input type="text" name="specs.measured_accuracy_sec_per_day" value={formData.specs?.measured_accuracy_sec_per_day || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#202223] mb-1">Badge (e.g., Rare)</label>
+                <input type="text" name="badge" value={formData.badge || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-[#202223] mb-1">Condition Notes</label>
+                <textarea name="condition_notes" rows={2} value={formData.condition_notes || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]"></textarea>
+              </div>
+              <div className="col-span-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" name="specs.strap_original" checked={formData.specs?.strap_original || false} onChange={handleChange} className="w-4 h-4 text-[#008060] border-[#D2D5D9] rounded focus:ring-[#008060]" />
+                  <span className="text-sm text-[#202223]">Strap is Original</span>
+                </label>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Specs & Notes */}
-        <div className="space-y-4 pt-4 border-t border-gray-800">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#d4af37] font-mono">2. Horological Specs & Condition</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Movement Caliber</label>
-              <input
-                type="text"
-                name="specs.movement_caliber"
-                value={formData.specs?.movement_caliber || ""}
-                onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-              />
-            </div>
+        {/* Right Column */}
+        <div className="space-y-6">
+          
+          {/* Status */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm">
+            <h2 className="text-sm font-semibold text-[#202223] mb-4">Status</h2>
+            
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="in_stock"
+                  checked={formData.in_stock !== false}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-[#008060] border-[#D2D5D9] rounded focus:ring-[#008060]"
+                />
+                <span className="text-sm text-[#202223]">In Stock (Available for purchase)</span>
+              </label>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-300 mb-1">Condition Grade</label>
-              <select
-                name="condition_grade"
-                value={formData.condition_grade}
-                onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-              >
-                <option value="new">Brand New / Sealed</option>
-                <option value="mint">Mint Restored</option>
-                <option value="excellent">Excellent Original</option>
-                <option value="very_good">Very Good Patina</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-gray-300 mb-1">Workshop Inspection Notes</label>
-              <input
-                type="text"
-                name="condition_notes"
-                value={formData.condition_notes || ""}
-                onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-gray-300 mb-1">Full Description</label>
-              <textarea
-                name="description"
-                rows={3}
-                value={formData.description || ""}
-                onChange={handleChange}
-                className="w-full bg-[#0d1117] border border-gray-700 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-              />
-            </div>
-
-            <div className="md:col-span-2 pt-2">
-              <label className="flex items-center gap-3 cursor-pointer bg-[#0d1117] border border-gray-700 p-4 rounded-xl hover:border-[#d4af37] transition-colors">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   name="featured"
-                  checked={formData.featured || false}
-                  onChange={(e) => setFormData((p: any) => ({ ...p, featured: e.target.checked }))}
-                  className="w-5 h-5 accent-[#d4af37] rounded cursor-pointer"
+                  checked={formData.featured}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-[#008060] border-[#D2D5D9] rounded focus:ring-[#008060]"
                 />
-                <div>
-                  <span className="block text-sm font-bold text-amber-300">⭐️ Showcase on Storefront Homepage (Featured Drop)</span>
-                  <span className="block text-xs text-gray-400">If checked, this watch will immediately appear in the Featured Timepieces banner on the customer homepage.</span>
-                </div>
+                <span className="text-sm text-[#202223]">Featured (Show on homepage)</span>
               </label>
             </div>
           </div>
-        </div>
 
-        <div className="pt-4 border-t border-gray-800 flex items-center justify-end gap-4">
-          <Link href="/admin" className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-semibold transition-colors">
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#d4af37] hover:bg-[#c5a02e] text-black font-bold rounded-xl text-sm shadow-lg shadow-[#d4af37]/20 transition-all disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? "Updating Server..." : "Save Changes"}</span>
-          </button>
+          {/* Organization */}
+          <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm space-y-4">
+            <h2 className="text-sm font-semibold text-[#202223]">Organization</h2>
+            
+            <div>
+              <label className="block text-sm font-medium text-[#202223] mb-1">Brand</label>
+              <input
+                type="text"
+                name="brand"
+                value={formData.brand || ""}
+                onChange={handleChange}
+                className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#202223] mb-1">Collection</label>
+              <select
+                name="collection"
+                value={formData.collection || ""}
+                onChange={handleChange}
+                className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] bg-white"
+              >
+                <option value="casio">Casio Watches</option>
+                <option value="japanese-vintage">Japanese Vintage</option>
+                <option value="swiss-vintage">Swiss Vintage</option>
+                <option value="hmt-watches">HMT Watches</option>
+                <option value="straps-accessories">Straps & Accessories</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#202223] mb-1">Reference Number</label>
+              <input
+                type="text"
+                name="reference_number"
+                value={formData.reference_number || ""}
+                onChange={handleChange}
+                className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]"
+              />
+            </div>
+          </div>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   )
 }

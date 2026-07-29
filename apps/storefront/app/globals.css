@@ -16,8 +16,8 @@
   --radius-custom: 16px;
   --shadow-custom: 0 12px 40px rgba(0,0,0,.06);
 
-  --font-heading: var(--font-cormorant), serif;
-  --font-body: var(--font-inter), sans-serif;
+  --font-heading: var(--font-playfair), serif;
+  --font-body: var(--font-outfit), sans-serif;
 }
 
 :root {
