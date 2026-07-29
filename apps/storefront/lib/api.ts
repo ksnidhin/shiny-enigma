@@ -38,7 +38,10 @@ export interface WatchProduct {
 // Empty fallback catalog ready for user's manual inventory addition
 export const LOCAL_WATCH_CATALOG: WatchProduct[] = [];
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api"
+const isServer = typeof window === 'undefined';
+const API_BASE = isServer 
+  ? "http://localhost:9000/api" 
+  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api");
 
 export async function fetchWatches(filters?: {
   collection?: string;
