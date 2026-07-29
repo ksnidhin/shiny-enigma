@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       const cookieStore = await cookies()
       cookieStore.set('rtc_admin_auth', password, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Temporarily disabled for HTTP IP testing
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7 // 1 week
