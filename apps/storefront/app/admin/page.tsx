@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
               ) : (
                 watches.map(watch => (
                   <tr key={watch.id} className="hover:bg-[#F4F6F8] transition-colors group">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[200px]">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded border border-[#D2D5D9] overflow-hidden bg-[#F4F6F8] flex-shrink-0 relative">
                           {watch.image ? (
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                         watch.in_stock ? "bg-[#AEE9D1] text-[#008060]" : "bg-[#FBEAE5] text-[#D82C0D]"
                       }`}>
@@ -188,17 +188,17 @@ export default function AdminDashboardPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       Rs. {watch.price.toLocaleString("en-IN")}
                     </td>
-                    <td className="px-4 py-3 text-[#5C5F62]">
+                    <td className="px-4 py-3 text-[#5C5F62] whitespace-nowrap">
                       {watch.brand}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <Link
                           href={`/admin/edit/${watch.slug || watch.id}`}
-                          className="p-1.5 text-[#5C5F62] hover:bg-white border border-transparent hover:border-[#D2D5D9] rounded transition-all shadow-sm"
+                          className="p-2 text-[#5C5F62] hover:bg-white border border-[#D2D5D9] lg:border-transparent lg:hover:border-[#D2D5D9] rounded transition-all shadow-sm bg-white lg:bg-transparent"
                           title="Edit"
                         >
                           <Edit3 className="w-4 h-4" />
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
                         <button
                           onClick={() => handleDelete(watch.id, watch.name)}
                           disabled={deletingId === watch.id}
-                          className="p-1.5 text-[#DE3618] hover:bg-white border border-transparent hover:border-[#D2D5D9] rounded transition-all shadow-sm disabled:opacity-50"
+                          className="p-2 text-[#DE3618] hover:bg-white border border-[#D2D5D9] lg:border-transparent lg:hover:border-[#D2D5D9] rounded transition-all shadow-sm disabled:opacity-50 bg-white lg:bg-transparent"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />

@@ -214,16 +214,16 @@ export default function NewTimepiecePage() {
             <h2 className="text-sm font-semibold text-[#202223]">Media</h2>
             
             {/* Gallery Grid */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(formData.gallery_images || []).map((imgUrl: string, idx: number) => (
                 <div key={idx} className="relative aspect-square border border-[#D2D5D9] rounded-md overflow-hidden group">
                   <img src={imgUrl} alt="Product media" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-1 right-1 bg-white rounded-md p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 bg-white rounded-md p-1 shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-3 h-3 text-[#202223]" />
+                    <X className="w-4 h-4 text-[#202223]" />
                   </button>
                   {idx === 0 && (
                     <div className="absolute bottom-1 left-1 bg-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm border border-[#D2D5D9]">
@@ -234,7 +234,7 @@ export default function NewTimepiecePage() {
               ))}
               
               {/* Upload Button */}
-              <label className="aspect-square border border-dashed border-[#D2D5D9] rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-[#F4F6F8] transition-colors relative">
+              <label className="aspect-square border border-dashed border-[#D2D5D9] rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-[#F4F6F8] transition-colors relative min-h-[100px]">
                 {uploadingImage ? (
                   <span className="text-xs font-medium text-[#5C5F62]">Uploading...</span>
                 ) : (
@@ -265,7 +265,7 @@ export default function NewTimepiecePage() {
               <button
                 type="button"
                 onClick={handleAddImageUrl}
-                className="px-3 py-1.5 bg-[#F4F6F8] border border-[#D2D5D9] hover:bg-[#EBEBEB] text-[#202223] font-medium rounded-md text-sm transition-colors"
+                className="px-3 py-1.5 bg-[#F4F6F8] border border-[#D2D5D9] hover:bg-[#EBEBEB] text-[#202223] font-medium rounded-md text-sm transition-colors whitespace-nowrap"
               >
                 Add URL
               </button>
@@ -275,7 +275,7 @@ export default function NewTimepiecePage() {
           {/* Pricing */}
           <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm">
             <h2 className="text-sm font-semibold text-[#202223] mb-4">Pricing</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#202223] mb-1">Price (Rs.)</label>
                 <input
@@ -303,7 +303,7 @@ export default function NewTimepiecePage() {
           {/* Specifications */}
           <div className="bg-white p-5 rounded-lg border border-[#D2D5D9] shadow-sm">
             <h2 className="text-sm font-semibold text-[#202223] mb-4">Specifications</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#202223] mb-1">Era Label</label>
                 <input type="text" name="era_label" value={formData.era_label || ""} onChange={handleChange} className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223]" />
