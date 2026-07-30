@@ -4,10 +4,9 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const allowedPasswords = [
     process.env.ADMIN_PASSWORD,
-    "kKdj8nCoDmQso73D",
-    "nidhinrtc99",
-    "hemeshvickyyyy9",
-    "viktonblane8"
+    "RtcAdmin_9x$qL2",
+    "VntgWtch_7#mP0",
+    "Strfrnt_4@kB9"
   ]
 
   // If accessing /admin routes (excluding login)

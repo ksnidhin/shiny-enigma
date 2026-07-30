@@ -6,10 +6,9 @@ export async function POST(request: Request) {
     const { password } = await request.json()
     const allowedPasswords = [
       process.env.ADMIN_PASSWORD,
-      "kKdj8nCoDmQso73D",
-      "nidhinrtc99",
-      "hemeshvickyyyy9",
-      "viktonblane8"
+      "RtcAdmin_9x$qL2",
+      "VntgWtch_7#mP0",
+      "Strfrnt_4@kB9"
     ]
 
     if (allowedPasswords.includes(password)) {
@@ -17,7 +16,7 @@ export async function POST(request: Request) {
       const cookieStore = await cookies()
       cookieStore.set('rtc_admin_auth', password, {
         httpOnly: true,
-        secure: false, // Temporarily disabled for HTTP IP testing
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7 // 1 week
