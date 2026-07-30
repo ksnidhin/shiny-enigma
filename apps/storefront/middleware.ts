@@ -9,8 +9,12 @@ export function middleware(request: NextRequest) {
     "Strfrnt_4@kB9"
   ]
 
-  // If accessing /admin routes (excluding login)
-  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {
+  // If accessing /admin routes (excluding login and auth-api)
+  if (
+    request.nextUrl.pathname.startsWith('/admin') && 
+    !request.nextUrl.pathname.startsWith('/admin/login') &&
+    !request.nextUrl.pathname.startsWith('/admin/auth-api')
+  ) {
     const authCookie = request.cookies.get('rtc_admin_auth')
     
     // Simple secure check matching the env variable or allowed passwords
