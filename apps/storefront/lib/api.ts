@@ -39,9 +39,10 @@ export interface WatchProduct {
 export const LOCAL_WATCH_CATALOG: WatchProduct[] = [];
 
 const isServer = typeof window === 'undefined';
+const isDev = process.env.NODE_ENV === 'development';
 const API_BASE = isServer 
-  ? "http://localhost:9000/api" 
-  : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000/api");
+  ? (process.env.INTERNAL_API_URL || "http://localhost:9000/api")
+  : (process.env.NEXT_PUBLIC_API_URL || (isDev ? "http://localhost:9000/api" : "/api"));
 
 export async function fetchWatches(filters?: {
   collection?: string;

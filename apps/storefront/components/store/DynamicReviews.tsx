@@ -20,7 +20,7 @@ export function DynamicReviews() {
   useEffect(() => {
     async function fetchReviews() {
       try {
-        const res = await fetch("http://localhost:9000/api/reviews")
+        const res = await fetch("/api/reviews")
         const data = await res.json()
         if (data.success) {
           setReviews(data.data)

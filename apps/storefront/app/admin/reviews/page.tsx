@@ -28,7 +28,7 @@ export default function AdminReviewsPage() {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch("http://localhost:9000/api/reviews")
+      const res = await fetch("/api/reviews")
       const data = await res.json()
       if (data.success) {
         setReviews(data.data)
@@ -47,7 +47,7 @@ export default function AdminReviewsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this review?")) return
     try {
-      await fetch(`http://localhost:9000/api/reviews/${id}`, { method: "DELETE" })
+      await fetch(`/api/reviews/${id}`, { method: "DELETE" })
       fetchReviews()
     } catch (err) {
       alert("Failed to delete")
@@ -58,7 +58,7 @@ export default function AdminReviewsPage() {
     e.preventDefault()
     setAdding(true)
     try {
-      await fetch("http://localhost:9000/api/reviews", {
+      await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newReview)

@@ -21,7 +21,7 @@ export function HeroSlider({ initialSlides = [] }: { initialSlides?: HeroSlide[]
   useEffect(() => {
     // If not provided from server, fetch from client
     if (initialSlides.length === 0) {
-      fetch("http://localhost:9000/api/hero")
+      fetch("/api/hero")
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data.length > 0) {
