@@ -87,7 +87,9 @@ router.get("/stats", async (_req: Request, res: Response): Promise<void> => {
     
     const collection_breakdown: Record<string, number> = {}
     all.forEach(w => {
-      collection_breakdown[w.collection] = (collection_breakdown[w.collection] || 0) + 1
+      if (w.in_stock) {
+        collection_breakdown[w.collection] = (collection_breakdown[w.collection] || 0) + 1
+      }
     })
 
     res.status(200).json({

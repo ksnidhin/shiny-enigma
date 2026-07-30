@@ -285,7 +285,7 @@ export async function importWatchesBulk(watches: Partial<WatchProduct>[]): Promi
 export async function fetchStats(): Promise<{ success: boolean; data?: any; message?: string }> {
   try {
     const res = await fetch(`${API_BASE}/stats`, {
-      next: { revalidate: 60 } // Cache for 60 seconds
+      cache: "no-store"
     })
     if (!res.ok) throw new Error("Failed to fetch stats")
     return await res.json()
