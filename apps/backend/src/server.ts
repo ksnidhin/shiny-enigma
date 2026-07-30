@@ -14,11 +14,13 @@ app.use(express.urlencoded({ extended: true }))
 
 import { heroRouter } from "./routes/hero"
 import reviewsRouter from "./routes/reviews"
+import collectionsRouter from "./routes/collections"
 
 // API Routes
 app.use("/api", watchRoutes)
 app.use("/api", heroRouter)
 app.use("/api", reviewsRouter)
+app.use("/api", collectionsRouter)
 
 // Health Check endpoint
 app.get("/health", (_req: Request, res: Response) => {

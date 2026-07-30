@@ -5,7 +5,7 @@ import { FeaturedWatchesSection } from "@/components/store/FeaturedWatchesSectio
 import { HeroSlider } from "@/components/store/HeroSlider"
 import { DynamicReviews } from "@/components/store/DynamicReviews"
 import { InstagramFeed } from "@/components/store/InstagramFeed"
-import { fetchStats } from "@/lib/api"
+import { fetchStats, fetchCollections } from "@/lib/api"
 
 async function getHeroSlides() {
   try {
@@ -27,7 +27,7 @@ async function getHeroSlides() {
   ]
 }
 
-const COLLECTIONS = [
+const DEFAULT_COLLECTIONS = [
   {
     id: "casio",
     title: "Casio Watches",
@@ -79,9 +79,16 @@ const COLLECTIONS = [
 ]
 
 export default async function Home() {
-  const statsRes = await fetchStats()
+  const [statsRes, collectionsRes] = await Promise.all([
+    fetchStats(),
+    fetchCollections()
+  ])
   const breakdown = statsRes?.data?.collection_breakdown || {}
   const slides = await getHeroSlides()
+  
+  const activeCollections = collectionsRes.success && collectionsRes.data.length > 0 
+    ? collectionsRes.data 
+    : DEFAULT_COLLECTIONS
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -135,45 +142,56 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {COLLECTIONS.map((col, idx) => (
-            <Link 
-              key={col.href}
-              href={col.href}
-              className={`group relative rounded-2xl overflow-hidden border border-[var(--color-border)] bg-white shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col ${
-                idx === 0 || idx === 1 ? "md:col-span-1 lg:col-span-1" : ""
-              }`}
-            >
-              <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-[#EBE5DC]">
-                <Image 
-                  src={col.image} 
-                  alt={col.title} 
-                  fill 
-                  className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[var(--color-brand)] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                  {col.badge}
-                </div>
-              </div>
-              
-              <div className="p-6 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
-                <div>
-                  <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
-                    {col.title}
-                  </h3>
-                  <p className="text-sm text-[var(--color-text-secondary)] font-medium">
-                    {breakdown[col.id] > 0 ? `${breakdown[col.id]} Pieces` : col.subtitle}
-                  </p>
+          {activeCollections.map((col, idx) => {
+            const availableCount = breakdown[col.id] || 0
+            return (
+              <Link 
+                key={col.href}
+                href={col.href}
+                className={`group relative rounded-2xl overflow-hidden border border-[var(--color-border)] bg-white shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col ${
+                  idx === 0 || idx === 1 ? "md:col-span-1 lg:col-span-1" : ""
+                }`}
+              >
+                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-[#EBE5DC]">
+                  <Image 
+                    src={col.image} 
+                    alt={col.title} 
+                    fill 
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    unoptimized
+                  />
+                  {col.badge && (
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[var(--color-brand)] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      {col.badge}
+                    </div>
+                  )}
                 </div>
                 
-                <div className="mt-6 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
-                  <span>Join Waitlist</span>
-                  <div className="w-8 h-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all">
-                    <ArrowRight className="w-4 h-4" />
+                <div className="p-6 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
+                  <div>
+                    <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
+                      {col.title}
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-secondary)] font-medium">
+                      {col.subtitle}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-6 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[#008060] font-bold text-sm">Buy Now</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)]">
+                        {availableCount > 0 ? `${availableCount} pieces available` : "Out of stock"}
+                      </span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       </section>
 

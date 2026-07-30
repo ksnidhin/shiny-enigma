@@ -129,6 +129,18 @@ export async function fetchWatches(filters?: {
   }
 }
 
+export async function fetchCollections(): Promise<{ success: boolean; data: any[] }> {
+  try {
+    const res = await fetch(`${API_BASE}/collections`, {
+      next: { revalidate: 60 },
+    })
+    if (res.ok) {
+      return await res.json()
+    }
+  } catch {}
+  return { success: false, data: [] }
+}
+
 export async function fetchWatchBySlug(slug: string): Promise<{
   success: boolean;
   data?: WatchProduct;

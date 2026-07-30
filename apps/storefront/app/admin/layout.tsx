@@ -26,6 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Add Product", href: "/admin/new", icon: PlusCircle },
     { name: "Bulk Import", href: "/admin/import", icon: Package },
     { name: "Hero Images", href: "/admin/hero", icon: ImageIcon },
+    { name: "Collections", href: "/admin/collections", icon: LayoutDashboard },
     { name: "Reviews", href: "/admin/reviews", icon: MessageCircle },
   ]
 

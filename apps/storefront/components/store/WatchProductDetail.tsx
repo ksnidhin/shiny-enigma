@@ -18,7 +18,8 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
   const [isReserved, setIsReserved] = React.useState<boolean>(false)
 
   const handleBuyNowWhatsApp = () => {
-    const text = `Hi RetroTimeCo! I'm interested to buy the specific watch:\n\n*${watch.name}*\nRef: ${watch.reference_number}\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`;
+    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const text = `Hi RetroTimeCo! I'm interested to buy the specific watch:\n\n*${watch.name}*\nRef: ${watch.reference_number}\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\nLink: ${pageUrl}\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`;
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
   }
 
@@ -27,7 +28,8 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
   }
 
   const handleReserve = () => {
-    const text = `Hi RetroTimeCo! I would like to reserve this piece for 24 hours:\n\n*${watch.name}* (Ref: ${watch.reference_number})`;
+    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const text = `Hi RetroTimeCo! I would like to reserve this piece for 24 hours:\n\n*${watch.name}* (Ref: ${watch.reference_number})\nLink: ${pageUrl}`;
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
   }
 
@@ -226,7 +228,8 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
               <>
                 <button
                   onClick={() => {
-                    const text = `Hi RetroTimeCo! I noticed this watch is sold out:\n\n*${watch.name}* (Ref: ${watch.reference_number})\n\nCould you please help me source a similar piece?`;
+                    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+                    const text = `Hi RetroTimeCo! I noticed this watch is sold out:\n\n*${watch.name}* (Ref: ${watch.reference_number})\nLink: ${pageUrl}\n\nCould you please help me source a similar piece?`;
                     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
                   }}
                   className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-gray-800 hover:bg-black text-white shadow-gray-600/20"
