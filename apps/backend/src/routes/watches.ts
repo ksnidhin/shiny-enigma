@@ -174,7 +174,7 @@ router.delete("/watches/:id", async (req: Request, res: Response): Promise<void>
 import fs from "fs"
 import path from "path"
 
-// POST /api/upload — Upload image to local disk (fallback for when Supabase isn't configured)
+// POST /api/upload — Upload image to local disk with compression
 router.post("/upload", upload.single("image"), async (req: Request, res: Response): Promise<void> => {
   try {
     const file = req.file
@@ -183,15 +183,26 @@ router.post("/upload", upload.single("image"), async (req: Request, res: Respons
       return
     }
 
-    const fileExt = file.originalname.split('.').pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-    
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`
     const uploadDir = path.join(__dirname, "../../../storefront/public/uploads")
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
     }
 
-    fs.writeFileSync(path.join(uploadDir, fileName), file.buffer)
+    const filePath = path.join(uploadDir, fileName)
+
+    try {
+      // Try to compress with sharp
+      const sharp = require("sharp")
+      await sharp(file.buffer)
+        .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(filePath)
+    } catch (sharpErr) {
+      // Fallback if sharp fails to install/run
+      console.warn("Sharp compression failed, falling back to original file:", sharpErr)
+      fs.writeFileSync(filePath, file.buffer)
+    }
 
     // Return the local URL
     res.status(200).json({ success: true, url: `/uploads/${fileName}` })
