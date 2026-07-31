@@ -288,8 +288,8 @@ export function WatchCatalogGrid({
                 >
                   <Link href={`/products/${product.slug}`} className="relative h-64 w-full bg-[#EAE4DB] overflow-hidden block">
                     <Image
-                      src={product.image}
-                      alt={product.name}
+                      src={product.image || "/hero_vintage_watch_1785170825322.jpg"}
+                      alt={product.name || "Watch"}
                       fill
                       className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     />

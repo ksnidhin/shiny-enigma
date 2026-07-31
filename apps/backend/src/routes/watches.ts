@@ -327,10 +327,20 @@ router.post("/watches/bulk", async (req: Request, res: Response): Promise<void> 
     }
 
     const currentWatches = await WatchStorage.getAll()
-    const newWatches = watches.map(w => ({
-      ...w,
-      id: w.id || `rtc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
-    })) as WatchProduct[]
+    const newWatches = watches.map(w => {
+      const slug = w.slug || w.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `watch-${Date.now()}`
+      return {
+        ...w,
+        id: w.id || `rtc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        slug,
+        gallery_images: w.gallery_images?.length ? w.gallery_images : (w.image ? [w.image] : []),
+        in_stock: w.in_stock ?? true,
+        featured: w.featured ?? false,
+        rating: w.rating || 5.0,
+        reviews_count: w.reviews_count || 1,
+        authenticity_guarantee: w.authenticity_guarantee ?? true,
+      }
+    }) as WatchProduct[]
     await WatchStorage.saveAll([...currentWatches, ...newWatches])
 
     res.status(200).json({ success: true, message: `Successfully imported ${watches.length} timepieces` })

@@ -12,7 +12,7 @@ interface WatchProductDetailProps {
 }
 
 export function WatchProductDetail({ watch, related }: WatchProductDetailProps) {
-  const [activeImage, setActiveImage] = React.useState<string>(watch.image)
+  const [activeImage, setActiveImage] = React.useState<string>(watch.image || "/hero_vintage_watch_1785170825322.jpg")
   const [activeTab, setActiveTab] = React.useState<"specs" | "authenticity" | "service" | "shipping">("specs")
   const [isAdded, setIsAdded] = React.useState<boolean>(false)
   const [isReserved, setIsReserved] = React.useState<boolean>(false)
@@ -380,7 +380,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                 className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col group"
               >
                 <Link href={`/products/${item.slug}`} className="relative h-56 w-full bg-[#EAE4DB] overflow-hidden block">
-                  <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={item.image || "/hero_vintage_watch_1785170825322.jpg"} alt={item.name || "Watch"} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   {item.badge && (
                     <span className="absolute top-2.5 left-2.5 bg-[var(--color-brand)] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                       {item.badge}
