@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { fetchWatches, fetchAdminStats, deleteWatch, updateWatch, WatchProduct } from "@/lib/api"
-import { Trash2, Edit3, Plus, Search, CheckCircle2, AlertTriangle, Package, DollarSign, Layers } from "lucide-react"
+import { fetchWatches, fetchAdminStats, deleteWatch, updateWatch, WatchProduct, bulkActionWatches } from "@/lib/api"
+import { Trash2, Edit3, Plus, Search, CheckCircle2, AlertTriangle, Package, DollarSign, Layers, X } from "lucide-react"
 
 export default function AdminDashboardPage() {
   const [watches, setWatches] = useState<WatchProduct[]>([])
@@ -20,6 +20,24 @@ export default function AdminDashboardPage() {
   } | null>(null)
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
+
+  const handleBulkAction = async (action: "delete" | "mark_sold_out" | "mark_active") => {
+    if (selectedIds.length === 0) return
+    if (action === "delete" && !confirm(`Are you sure you want to permanently delete ${selectedIds.length} products?`)) return
+    
+    setBulkActionLoading(true)
+    const res = await bulkActionWatches(action, selectedIds)
+    if (res.success) {
+      setNotification({ type: "success", message: `Successfully updated ${selectedIds.length} products.` })
+      setSelectedIds([])
+      loadData()
+    } else {
+      setNotification({ type: "error", message: res.message || "Bulk action failed." })
+    }
+    setBulkActionLoading(false)
+  }
 
   const loadData = async () => {
     setLoading(true)
@@ -134,12 +152,38 @@ export default function AdminDashboardPage() {
             <option value="straps-accessories">Straps & Accessories</option>
           </select>
         </div>
+        
+        {/* Bulk Actions Bar */}
+        {selectedIds.length > 0 && (
+          <div className="bg-[#E3F1DF] px-4 py-2 border-b border-[#D2D5D9] flex items-center justify-between">
+            <span className="text-sm font-medium text-[#202223]">{selectedIds.length} products selected</span>
+            <div className="flex gap-2">
+              <button onClick={() => handleBulkAction("mark_active")} disabled={bulkActionLoading} className="text-xs bg-white border border-[#D2D5D9] rounded px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50 text-[#202223]">Mark Active</button>
+              <button onClick={() => handleBulkAction("mark_sold_out")} disabled={bulkActionLoading} className="text-xs bg-white border border-[#D2D5D9] rounded px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50 text-[#202223]">Mark Sold Out</button>
+              <button onClick={() => handleBulkAction("delete")} disabled={bulkActionLoading} className="text-xs bg-white border border-[#D2D5D9] rounded px-3 py-1.5 hover:bg-gray-50 text-red-600 disabled:opacity-50">Delete Selected</button>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-[#202223]">
             <thead className="bg-[#F9FAFB] border-b border-[#D2D5D9] text-[#5C5F62]">
               <tr>
+                <th className="px-4 py-3 w-10">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-[#D2D5D9]"
+                    checked={watches.length > 0 && selectedIds.length === watches.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(watches.map(w => w.id))
+                      } else {
+                        setSelectedIds([])
+                      }
+                    }}
+                  />
+                </th>
                 <th className="px-4 py-3 font-medium">Product</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Inventory</th>
@@ -150,15 +194,29 @@ export default function AdminDashboardPage() {
             <tbody className="divide-y divide-[#D2D5D9]">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-[#5C5F62]">Loading products...</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-[#5C5F62]">Loading products...</td>
                 </tr>
               ) : watches.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-[#5C5F62]">No products found matching your criteria.</td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-[#5C5F62]">No products found matching your criteria.</td>
                 </tr>
               ) : (
                 watches.map(watch => (
                   <tr key={watch.id} className="hover:bg-[#F4F6F8] transition-colors group">
+                    <td className="px-4 py-3">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-[#D2D5D9]"
+                        checked={selectedIds.includes(watch.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(prev => [...prev, watch.id])
+                          } else {
+                            setSelectedIds(prev => prev.filter(id => id !== watch.id))
+                          }
+                        }}
+                      />
+                    </td>
                     <td className="px-4 py-3 min-w-[200px]">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded border border-[#D2D5D9] overflow-hidden bg-[#F4F6F8] flex-shrink-0 relative">

@@ -229,13 +229,23 @@ export async function updateWatch(id: string, updates: Partial<WatchProduct>): P
 
 export async function deleteWatch(id: string): Promise<{ success: boolean; message?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/watches/${id}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) throw new Error("Failed to delete timepiece");
-    return await res.json();
-  } catch (error) {
-    return { success: false, message: (error as Error).message };
+    const res = await fetch(`${API_BASE}/watches/${id}`, { method: "DELETE" })
+    return await res.json()
+  } catch {
+    return { success: false, message: "Backend offline" }
+  }
+}
+
+export async function bulkActionWatches(action: "delete" | "mark_sold_out" | "mark_active", ids: string[]): Promise<{ success: boolean; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/watches/bulk-action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, ids })
+    })
+    return await res.json()
+  } catch {
+    return { success: false, message: "Backend offline" }
   }
 }
 

@@ -348,5 +348,29 @@ router.post("/watches/bulk", async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ success: false, message: "Server error during bulk import" })
   }
 })
+// POST /api/watches/bulk-action - Bulk delete or update status
+router.post("/watches/bulk-action", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { action, ids } = req.body
+    if (!action || !Array.isArray(ids)) {
+      res.status(400).json({ success: false, message: "Invalid payload" })
+      return
+    }
+
+    let currentWatches = await WatchStorage.getAll()
+    if (action === "delete") {
+      currentWatches = currentWatches.filter(w => !ids.includes(w.id))
+    } else if (action === "mark_sold_out") {
+      currentWatches = currentWatches.map(w => ids.includes(w.id) ? { ...w, in_stock: false } : w)
+    } else if (action === "mark_active") {
+      currentWatches = currentWatches.map(w => ids.includes(w.id) ? { ...w, in_stock: true } : w)
+    }
+    
+    await WatchStorage.saveAll(currentWatches)
+    res.status(200).json({ success: true, message: "Bulk action applied" })
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error during bulk action" })
+  }
+})
 
 export default router
