@@ -22,6 +22,7 @@ export function WatchCatalogGrid({
   collectionSubtitle,
 }: WatchCatalogGridProps) {
   const [watches, setWatches] = React.useState<WatchProduct[]>(initialWatches)
+  const [addedIds, setAddedIds] = React.useState<Set<string>>(new Set())
   const [selectedBrand, setSelectedBrand] = React.useState<string>("all")
   const [selectedCondition, setSelectedCondition] = React.useState<string>("all")
   const [priceRange, setPriceRange] = React.useState<string>("all")
@@ -305,11 +306,23 @@ export function WatchCatalogGrid({
                     )}
                     <div className="absolute top-3 right-3 flex flex-col gap-1.5">
                       <button 
-                        onClick={(e) => { e.preventDefault(); /* Wishlist action */ }}
-                        className="w-8 h-8 rounded-full bg-white/90 text-gray-700 hover:text-red-500 flex items-center justify-center transition-colors shadow-sm"
+                        onClick={async (e) => { 
+                          e.preventDefault(); 
+                          const { addToCart } = await import("@/lib/cart");
+                          addToCart(product);
+                          setAddedIds(prev => new Set(prev).add(product.id));
+                          setTimeout(() => {
+                            setAddedIds(prev => {
+                              const next = new Set(prev);
+                              next.delete(product.id);
+                              return next;
+                            });
+                          }, 2000);
+                        }}
+                        className={`w-8 h-8 rounded-full bg-white/90 flex items-center justify-center transition-colors shadow-sm ${addedIds.has(product.id) ? 'text-red-500' : 'text-gray-700 hover:text-red-500'}`}
                         aria-label="Wishlist"
                       >
-                        <Heart className="w-4 h-4" />
+                        <Heart className={`w-4 h-4 ${addedIds.has(product.id) ? 'fill-current' : ''}`} />
                       </button>
                     </div>
                   </Link>

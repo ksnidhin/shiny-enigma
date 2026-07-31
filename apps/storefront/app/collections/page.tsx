@@ -17,7 +17,7 @@ export default async function AllCollectionsPage() {
         collectionSlug="all"
         availableBrands={result.available_brands}
         collectionTitle="The Complete Horological Archive"
-        collectionSubtitle="Explore our entire inventory of 320+ verified timepieces. Filter by brand, era, price range, and mechanical specifications."
+        collectionSubtitle={`Explore our entire inventory of ${result.total || ''} verified timepieces. Filter by brand, era, price range, and mechanical specifications.`}
       />
     </div>
   )

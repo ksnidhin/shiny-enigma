@@ -187,7 +187,7 @@ const POLICIES: Record<string, PolicyData> = {
             <h4 className="font-bold text-base text-[var(--color-text-primary)]">Chennai Workshop</h4>
             <p className="text-xs text-gray-500">Our central inspection, restoration, and secure vault storage facility.</p>
             <address className="not-italic text-xs text-gray-700 font-medium">
-              18, ABC AVENUE, IST FLOOR,<br />MARKET LANE, KALADIPET,<br />CHENNAI, Tamil Nadu-600019
+              18b beach view chennai,<br />Tamil Nadu-600019
             </address>
           </div>
         </div>

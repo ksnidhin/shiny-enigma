@@ -23,8 +23,29 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
   }
 
-  const handleAddToCart = () => {
-    handleBuyNowWhatsApp();
+  const handleAddToCart = async () => {
+    const { addToCart } = await import("@/lib/cart")
+    addToCart(watch)
+    setIsAdded(true)
+    setTimeout(() => setIsAdded(false), 2000)
+  }
+
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: watch.name,
+          text: `Check out this vintage timepiece: ${watch.name}`,
+          url: url,
+        });
+      } catch (err) {
+        console.log("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard!");
+    }
   }
 
   const handleReserve = () => {
@@ -82,14 +103,14 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
             )}
             <div className="absolute top-4 right-4 flex flex-col gap-2">
               <button 
-                onClick={() => {}} 
-                className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md text-gray-700 hover:text-red-500 flex items-center justify-center shadow-md transition-colors"
+                onClick={handleAddToCart} 
+                className={`w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-md transition-colors ${isAdded ? 'text-red-500' : 'text-gray-700 hover:text-red-500'}`}
                 aria-label="Wishlist"
               >
-                <Heart className="w-5 h-5" />
+                <Heart className={`w-5 h-5 ${isAdded ? 'fill-current' : ''}`} />
               </button>
               <button 
-                onClick={() => {}} 
+                onClick={handleShare} 
                 className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md text-gray-700 hover:text-blue-600 flex items-center justify-center shadow-md transition-colors"
                 aria-label="Share"
               >

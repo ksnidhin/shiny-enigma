@@ -12,31 +12,31 @@ interface CartItem {
 }
 
 export default function CartPage() {
-  // Initialize with curated watches if available, otherwise empty cart
-  const [items, setItems] = React.useState<CartItem[]>(
-    LOCAL_WATCH_CATALOG.length >= 2
-      ? [
-          { watch: LOCAL_WATCH_CATALOG[0]!, quantity: 1 },
-          { watch: LOCAL_WATCH_CATALOG[1]!, quantity: 1 },
-        ]
-      : []
-  )
+  const [items, setItems] = React.useState<CartItem[]>([])
+
+  React.useEffect(() => {
+    import("@/lib/cart").then((module) => {
+      setItems(module.getCartItems())
+    })
+  }, [])
+
   const [promoCode, setPromoCode] = React.useState<string>("")
   const [discountApplied, setDiscountApplied] = React.useState<boolean>(true)
   const [isCheckingOut, setIsCheckingOut] = React.useState<boolean>(false)
 
-  const updateQuantity = (id: string, delta: number) => {
-    setItems(prev => prev.map(item => {
-      if (item.watch?.id === id) {
-        const newQty = Math.max(1, item.quantity + delta)
-        return { ...item, quantity: newQty }
-      }
-      return item
-    }).filter(item => item.quantity > 0))
+  const updateQuantity = async (id: string, delta: number) => {
+    const { updateCartQuantity, getCartItems } = await import("@/lib/cart")
+    const item = items.find(i => i.watch.id === id)
+    if (item) {
+      updateCartQuantity(id, item.quantity + delta)
+      setItems(getCartItems())
+    }
   }
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.watch?.id !== id))
+  const removeItem = async (id: string) => {
+    const { removeFromCart, getCartItems } = await import("@/lib/cart")
+    removeFromCart(id)
+    setItems(getCartItems())
   }
 
   const subtotal = items.reduce((sum, item) => sum + (item.watch?.price || 0) * item.quantity, 0)
@@ -48,7 +48,8 @@ export default function CartPage() {
   }
 
   const handleCheckout = () => {
-    const itemList = items.map(item => `• ${item.watch?.name || "Timepiece"} (Qty: ${item.quantity}) - Rs. ${((item.watch?.price || 0) * item.quantity).toLocaleString("en-IN")}`).join("\n");
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://retrotimeco.in";
+    const itemList = items.map(item => `• ${item.watch?.name || "Timepiece"} (Qty: ${item.quantity})\n  Price: Rs. ${((item.watch?.price || 0) * item.quantity).toLocaleString("en-IN")}\n  Link: ${origin}/products/${item.watch.slug}`).join("\n\n");
     const text = `Hi RetroTimeCo! I'm ready to buy the following items from my cart:\n\n${itemList}\n\n*Total Amount: Rs. ${total.toLocaleString("en-IN")}*\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`;
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
   }
@@ -100,7 +101,7 @@ export default function CartPage() {
               href="/collections/all"
               className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-bold rounded-2xl text-xs uppercase tracking-wider shadow-lg transition-all"
             >
-              <span>Explore All Timepieces (320+)</span>
+              <span>Explore All Timepieces</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
