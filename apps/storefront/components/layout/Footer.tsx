@@ -32,8 +32,7 @@ export function Footer() {
             <div className="text-xs text-white/60 flex items-start gap-2 mt-2">
               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
-                18, ABC AVENUE, IST FLOOR,<br/>
-                MARKET LANE, KALADIPET,<br/>
+               372 Beach View,<br/>
                 CHENNAI, Tamil Nadu-600019
               </span>
             </div>
