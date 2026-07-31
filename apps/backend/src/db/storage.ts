@@ -38,7 +38,7 @@ export interface WatchProduct {
   description: string;
 }
 
-const DATA_FILE = path.join(__dirname, "../../data/watches.json")
+const DATA_FILE = path.join(__dirname, "../../data/live_watches.json")
 
 export class WatchStorage {
   private static initFile() {
