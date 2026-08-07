@@ -63,6 +63,10 @@ router.get("/collections", (req: Request, res: Response) => {
       return
     }
     const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"))
+    if (Array.isArray(data) && data.length === 0) {
+      res.json({ success: true, data: DEFAULT_COLLECTIONS })
+      return
+    }
     res.json({ success: true, data })
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to read collections data" })
