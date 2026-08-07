@@ -25,6 +25,21 @@ export default function NewTimepiecePage() {
   const [generatingAI, setGeneratingAI] = useState<boolean>(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [newImageUrl, setNewImageUrl] = useState("")
+  const [availableCollections, setAvailableCollections] = useState<any[]>([])
+
+  React.useEffect(() => {
+    fetch("/api/collections")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setAvailableCollections(data.data)
+          if (data.data.length > 0 && !formData.collection) {
+            setFormData((prev: any) => ({ ...prev, collection: data.data[0].id }))
+          }
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -415,15 +430,14 @@ export default function NewTimepiecePage() {
               <label className="block text-sm font-medium text-[#202223] mb-1">Collection</label>
               <select
                 name="collection"
-                value={formData.collection || "japanese-vintage"}
+                value={formData.collection || ""}
                 onChange={handleChange}
                 className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] bg-white"
               >
-                <option value="casio">Casio Watches</option>
-                <option value="japanese-vintage">Japanese Vintage</option>
-                <option value="swiss-vintage">Swiss Vintage</option>
-                <option value="hmt-watches">HMT Watches</option>
-                <option value="straps-accessories">Straps & Accessories</option>
+                {availableCollections.length === 0 && <option value="japanese-vintage">Japanese Vintage</option>}
+                {availableCollections.map(col => (
+                  <option key={col.id} value={col.id}>{col.title}</option>
+                ))}
               </select>
             </div>
 

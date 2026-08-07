@@ -21,8 +21,19 @@ export default function EditTimepiecePage() {
   const [aiError, setAiError] = useState<string | null>(null)
 
   const [newImageUrl, setNewImageUrl] = useState("")
+  const [availableCollections, setAvailableCollections] = useState<any[]>([])
 
   useEffect(() => {
+    // Fetch available collections
+    fetch("/api/collections")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setAvailableCollections(data.data)
+        }
+      })
+      .catch(() => {})
+
     async function load() {
       if (!idOrSlug) return
       const res = await fetchWatchBySlug(idOrSlug)
@@ -443,11 +454,10 @@ export default function EditTimepiecePage() {
                 onChange={handleChange}
                 className="w-full border border-[#D2D5D9] rounded-md px-3 py-2 text-sm text-[#202223] bg-white"
               >
-                <option value="casio">Casio Watches</option>
-                <option value="japanese-vintage">Japanese Vintage</option>
-                <option value="swiss-vintage">Swiss Vintage</option>
-                <option value="hmt-watches">HMT Watches</option>
-                <option value="straps-accessories">Straps & Accessories</option>
+                {availableCollections.length === 0 && <option value="japanese-vintage">Japanese Vintage</option>}
+                {availableCollections.map(col => (
+                  <option key={col.id} value={col.id}>{col.title}</option>
+                ))}
               </select>
             </div>
 

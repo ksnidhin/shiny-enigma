@@ -24,6 +24,7 @@ router.post("/collections", (req: Request, res: Response) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(collections, null, 2))
     res.json({ success: true, message: "Collections saved successfully" })
   } catch (err) {
+    console.error("Collections save error:", err);
     res.status(500).json({ success: false, message: "Failed to save collections data" })
   }
 })
