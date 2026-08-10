@@ -3,6 +3,15 @@ import { MobileMenu } from "./MobileMenu"
 import { ShoppingBag, Search, ChevronDown } from "lucide-react"
 import { fetchCollections } from "@/lib/api"
 
+const NAV_LINKS = [
+  { label: "SHOP ALL", href: "/collections/all" },
+  { label: "CASIO", href: "/collections/casio" },
+  { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
+  { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
+  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
+  { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
+]
+
 export async function Nav() {
   const collectionsRes = await fetchCollections()
   const activeCollections = collectionsRes.success && collectionsRes.data.length > 0 
@@ -29,6 +38,15 @@ export async function Nav() {
 
         {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center space-x-6">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
           <div className="group relative">
             <button className="flex items-center gap-1 text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors">
               COLLECTIONS

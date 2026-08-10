@@ -8,6 +8,15 @@ import { Menu, X } from "lucide-react"
 
 
 
+const NAV_LINKS = [
+  { label: "SHOP ALL", href: "/collections/all" },
+  { label: "CASIO", href: "/collections/casio" },
+  { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
+  { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
+  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
+  { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
+]
+
 export function MobileMenu({ collections }: { collections: any[] }) {
   const [open, setOpen] = React.useState(false)
 
@@ -48,13 +57,16 @@ export function MobileMenu({ collections }: { collections: any[] }) {
                   </DialogPrimitive.Close>
                 </div>
                 <nav className="flex flex-col space-y-6">
-                  <Link
-                    href="/collections/all"
-                    onClick={() => setOpen(false)}
-                    className="text-lg font-medium text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-[var(--radius)] px-2 -mx-2 transition-colors"
-                  >
-                    SHOP ALL
-                  </Link>
+                  {NAV_LINKS.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className="text-lg font-medium text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-[var(--radius)] px-2 -mx-2 transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                   <div className="text-sm font-bold tracking-widest text-[var(--color-text-secondary)] uppercase pt-4 border-t border-[var(--color-border)]">
                     Collections
                   </div>
