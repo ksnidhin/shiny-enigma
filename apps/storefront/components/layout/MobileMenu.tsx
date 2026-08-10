@@ -16,7 +16,7 @@ const NAV_LINKS = [
   { label: "SELL YOUR WATCH", href: "/pages/sell" },
 ]
 
-export function MobileMenu() {
+export function MobileMenu({ collections }: { collections: any[] }) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -44,7 +44,7 @@ export function MobileMenu() {
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="fixed inset-y-0 right-0 z-50 w-full max-w-sm border-l border-[var(--color-border)] bg-[var(--color-bg-primary)] p-6 shadow-[var(--shadow-custom)] outline-none"
+                className="fixed inset-y-0 right-0 z-50 w-full max-w-sm border-l border-[var(--color-border)] bg-[var(--color-bg-primary)] p-6 shadow-[var(--shadow-custom)] outline-none overflow-y-auto"
               >
                 <div className="flex items-center justify-between mb-8">
                   <span className="font-heading text-xl font-bold tracking-tight text-[var(--color-text-primary)]">
@@ -56,14 +56,24 @@ export function MobileMenu() {
                   </DialogPrimitive.Close>
                 </div>
                 <nav className="flex flex-col space-y-6">
-                  {NAV_LINKS.map((link) => (
+                  <Link
+                    href="/collections/all"
+                    onClick={() => setOpen(false)}
+                    className="text-lg font-medium text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-[var(--radius)] px-2 -mx-2 transition-colors"
+                  >
+                    SHOP ALL
+                  </Link>
+                  <div className="text-sm font-bold tracking-widest text-[var(--color-text-secondary)] uppercase pt-4 border-t border-[var(--color-border)]">
+                    Collections
+                  </div>
+                  {collections.map((col) => (
                     <Link
-                      key={link.href}
-                      href={link.href}
+                      key={col.href}
+                      href={col.href}
                       onClick={() => setOpen(false)}
                       className="text-lg font-medium text-[var(--color-text-primary)] hover:text-[var(--color-brand)] focus-ring rounded-[var(--radius)] px-2 -mx-2 transition-colors"
                     >
-                      {link.label}
+                      {col.title}
                     </Link>
                   ))}
                 </nav>

@@ -1,18 +1,14 @@
 import Link from "next/link"
 import { MobileMenu } from "./MobileMenu"
-import { ShoppingBag, Search, User } from "lucide-react"
+import { ShoppingBag, Search, ChevronDown } from "lucide-react"
+import { fetchCollections } from "@/lib/api"
 
-const NAV_LINKS = [
-  { label: "SHOP ALL", href: "/collections/all" },
-  { label: "CASIO", href: "/collections/casio" },
-  { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
-  { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
-  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
-  { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
-  { label: "SELL YOUR WATCH", href: "/pages/sell" },
-]
+export async function Nav() {
+  const collectionsRes = await fetchCollections()
+  const activeCollections = collectionsRes.success && collectionsRes.data.length > 0 
+    ? collectionsRes.data 
+    : []
 
-export function Nav() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-[var(--color-border)] bg-[var(--color-bg-primary)]/95 backdrop-blur-md transition-all">
       {/* Top Banner */}
@@ -22,7 +18,7 @@ export function Nav() {
 
       <div className="container mx-auto px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <MobileMenu />
+          <MobileMenu collections={activeCollections} />
           <Link 
             href="/" 
             className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-[var(--color-brand)] focus-ring rounded-[var(--radius)] px-2 -ml-2"
@@ -33,15 +29,29 @@ export function Nav() {
 
         {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center space-x-6">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+          <div className="group relative">
+            <button className="flex items-center gap-1 text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors">
+              COLLECTIONS
+              <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+            </button>
+            <div className="absolute top-full left-0 mt-2 w-56 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
+              <Link
+                href="/collections/all"
+                className="px-4 py-2 text-sm font-bold text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-accent)] transition-colors border-b border-[var(--color-border)]"
+              >
+                VIEW ALL COLLECTIONS
+              </Link>
+              {activeCollections.map((col: any) => (
+                <Link
+                  key={col.href}
+                  href={col.href}
+                  className="px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-accent)] transition-colors"
+                >
+                  {col.title}
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
 
         {/* Action Icons */}

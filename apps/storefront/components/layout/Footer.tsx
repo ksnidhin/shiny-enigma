@@ -7,7 +7,6 @@ const EXPLORE_LINKS = [
   { label: "Swiss Vintage Timepieces", href: "/collections/swiss-vintage" },
   { label: "HMT Watches", href: "/collections/hmt-watches" },
   { label: "Straps & Accessories", href: "/collections/straps-accessories" },
-  { label: "Sell Your Watch", href: "/pages/sell" },
 ]
 
 const POLICY_LINKS = [

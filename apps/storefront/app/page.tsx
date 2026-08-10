@@ -198,37 +198,7 @@ export default async function Home() {
       {/* Dynamic Featured Watches Section */}
       {/* <FeaturedWatchesSection /> - Disabled for Waitlist Phase */}
 
-      {/* Sell / Consign Spotlight */}
-      <section className="py-20 container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-[#173528] to-[#0F241B] rounded-3xl p-8 md:p-14 text-white shadow-2xl relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-10">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="max-w-xl space-y-6 relative z-10">
-            <span className="text-xs font-bold tracking-widest text-amber-300 uppercase block">Horological Consignment</span>
-            <h2 className="font-heading text-3xl sm:text-5xl font-bold leading-tight">
-              Looking to Sell Your Vintage Timepiece?
-            </h2>
-            <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
-              We offer instant fair valuations and direct purchase for vintage Seiko, Citizen, HMT, and Swiss luxury timepieces. Turn your collector items into instant cash or store credit with verified horologists.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Link 
-                href="/pages/sell"
-                className="px-8 py-4 bg-[var(--color-accent)] hover:bg-[#b88c47] text-white font-bold rounded-xl text-xs tracking-widest uppercase transition-all shadow-xl"
-              >
-                Get Watch Valuation
-              </Link>
-            </div>
-          </div>
 
-          <div className="w-full lg:w-1/3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 relative z-10 space-y-4">
-            <h3 className="font-heading text-xl font-bold text-white mb-2">Sell your collection</h3>
-            <p className="text-xs text-white/90 leading-relaxed">
-              We specialize in sourcing and restoring vintage timepieces. If you have a collection or a single piece you'd like to part with, our horologists will offer you a fair market valuation.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Dynamic Community Reviews Section */}
       <section className="py-20 bg-[var(--color-bg-primary)]">

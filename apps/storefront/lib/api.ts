@@ -133,7 +133,7 @@ export async function fetchWatches(filters?: {
 export async function fetchCollections(): Promise<{ success: boolean; data: any[] }> {
   try {
     const res = await fetch(`${API_BASE}/collections`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 0 },
     })
     if (res.ok) {
       return await res.json()
