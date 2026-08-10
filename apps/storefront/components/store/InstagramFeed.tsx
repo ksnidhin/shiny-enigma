@@ -13,38 +13,18 @@ const InstagramIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-// Instagram Facebook CDN tokens expire after a few days. 
-// For a live production feed, you must use a service like Elfsight, Snapwidget, or the Instagram Graph API.
-// For now, we use local fallback images so the design doesn't break!
-const INSTAGRAM_POSTS = [
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/hero_vintage_watch_1785170825322.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/watch_casio_edifice_1785170834699.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/watch_seiko_vintage_1785170846705.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/watch_swiss_vintage_1785170866472.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/watch_s23_tank_1785170876386.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/hmt_vintage_watch_1785257285844.jpg"
-  },
-  {
-    "link": "https://www.instagram.com/retrotimeco.in",
-    "image": "/watch_accessories_1785170889478.jpg"
-  }
+// We use Instagram embed iframes here so the posts are live and don't rely on expiring Facebook CDN image tokens!
+const INSTAGRAM_POST_IDS = [
+  "DYj2lSlFNKZ",
+  "DYj2bHzFA3S",
+  "DYj2SKIlEh-",
+  "DYjyrSElH5Q",
+  "DYjyaXMFLcW",
+  "DYjyQwsFA5o",
+  "DYjyHQ0lGV8",
+  "DYjxwXDFAzy",
+  "DYcQHKzFIxU",
+  "DX9RPpOlHWS"
 ]
 
 export function InstagramFeed() {
@@ -99,23 +79,21 @@ export function InstagramFeed() {
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 pt-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {INSTAGRAM_POSTS.map((post, idx) => (
-              <Link 
+            {INSTAGRAM_POST_IDS.map((postId, idx) => (
+              <div 
                 key={idx}
-                href={post.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="snap-start shrink-0 relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] rounded-3xl overflow-hidden shadow-md border border-[var(--color-border)] group/item"
+                className="snap-start shrink-0 relative w-[320px] h-[450px] rounded-2xl overflow-hidden shadow-sm border border-[var(--color-border)] bg-[#fafafa]"
               >
-                <img
-                  src={post.image}
-                  alt={`Instagram post ${idx + 1}`}
-                  className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-700 ease-out"
+                <iframe
+                  src={`https://www.instagram.com/p/${postId}/embed/`}
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  className="w-full h-full border-none"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <InstagramIcon className="text-white w-10 h-10 opacity-0 group-hover/item:opacity-100 transform scale-50 group-hover/item:scale-100 transition-all duration-300 drop-shadow-lg" />
-                </div>
-              </Link>
+              </div>
             ))}
           </div>
 
