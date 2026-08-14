@@ -3,14 +3,6 @@ import { MobileMenu } from "./MobileMenu"
 import { ShoppingBag, Search, ChevronDown } from "lucide-react"
 import { fetchCollections } from "@/lib/api"
 
-const NAV_LINKS = [
-  { label: "SHOP ALL", href: "/collections/all" },
-  { label: "CASIO", href: "/collections/casio" },
-  { label: "JAPANESE VINTAGE", href: "/collections/japanese-vintage" },
-  { label: "SWISS VINTAGE", href: "/collections/swiss-vintage" },
-  { label: "HMT WATCHES", href: "/collections/hmt-watches" },
-  { label: "STRAPS & ACCESSORIES", href: "/collections/straps-accessories" },
-]
 
 export async function Nav() {
   const collectionsRes = await fetchCollections()
@@ -21,8 +13,8 @@ export async function Nav() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-[var(--color-border)] bg-[var(--color-bg-primary)]/95 backdrop-blur-md transition-all">
       {/* Top Banner */}
-      <div className="bg-[var(--color-brand)] text-white text-xs font-medium py-1.5 px-4 text-center tracking-wider uppercase">
-        ⚡ All-India Express Delivery Ready To Ship — Verified Horological Pieces ⚡
+      <div className="bg-[var(--color-brand)] text-white/90 text-[10px] sm:text-xs font-medium py-2 px-4 text-center tracking-[0.15em] uppercase">
+        Complimentary express shipping across India on all vintage timepieces
       </div>
 
       <div className="container mx-auto px-4 md:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
@@ -37,25 +29,22 @@ export async function Nav() {
         </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden xl:flex items-center space-x-6">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden xl:flex items-center space-x-8">
+          <Link
+            href="/collections/all"
+            className="text-xs font-semibold tracking-widest uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] py-2 transition-colors"
+          >
+            SHOP ALL
+          </Link>
           <div className="group relative">
-            <button className="flex items-center gap-1 text-xs font-semibold tracking-wider uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] px-2 py-2 transition-colors">
+            <button className="flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-[var(--color-text-primary)] hover:text-[var(--color-accent)] focus-ring rounded-[var(--radius)] py-2 transition-colors">
               COLLECTIONS
-              <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+              <ChevronDown className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" />
             </button>
-            <div className="absolute top-full left-0 mt-2 w-56 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
+            <div className="absolute top-full left-0 mt-4 w-64 bg-white border border-[var(--color-border)] rounded-xl shadow-[var(--shadow-custom)] opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out z-50 flex flex-col py-2 overflow-hidden">
               <Link
                 href="/collections/all"
-                className="px-4 py-2 text-sm font-bold text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-accent)] transition-colors border-b border-[var(--color-border)]"
+                className="px-5 py-3 text-xs font-bold tracking-wider text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] hover:text-[var(--color-accent)] transition-colors border-b border-[var(--color-border)]"
               >
                 VIEW ALL COLLECTIONS
               </Link>
@@ -63,7 +52,7 @@ export async function Nav() {
                 <Link
                   key={col.href}
                   href={col.href}
-                  className="px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-accent)] transition-colors"
+                  className="px-5 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] hover:text-[var(--color-accent)] transition-colors"
                 >
                   {col.title}
                 </Link>

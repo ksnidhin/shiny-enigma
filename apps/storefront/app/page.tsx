@@ -96,49 +96,49 @@ export default async function Home() {
 
 
       {/* Trust Badges */}
-      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] py-8">
+      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] py-12 md:py-16">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <ShieldCheck className="w-5 h-5" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-sm">100% Authenticity Guaranteed</h3>
-              <p className="text-xs text-[var(--color-text-secondary)]">Verified by expert watchmakers</p>
+              <h3 className="font-semibold text-sm md:text-base">100% Authenticity Guaranteed</h3>
+              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Verified by expert watchmakers</p>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Truck className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
+                <Truck className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-sm">Express Shipping Across India</h3>
-              <p className="text-xs text-[var(--color-text-secondary)]">Free on orders above Rs. 499</p>
+              <h3 className="font-semibold text-sm md:text-base">Express Shipping Across India</h3>
+              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Free on orders above Rs. 499</p>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Clock className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
+                <Clock className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-sm">Fully Serviced &amp; Restored</h3>
-              <p className="text-xs text-[var(--color-text-secondary)]">Vintage pieces regulated for accuracy</p>
+              <h3 className="font-semibold text-sm md:text-base">Fully Serviced &amp; Restored</h3>
+              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Vintage pieces regulated for accuracy</p>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Award className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
+                <Award className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-sm">Curated Horological Archive</h3>
-              <p className="text-xs text-[var(--color-text-secondary)]">Handpicked for collectors &amp; enthusiasts</p>
+              <h3 className="font-semibold text-sm md:text-base">Curated Horological Archive</h3>
+              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Handpicked for collectors &amp; enthusiasts</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Curated Categories Grid */}
-      <section className="py-20 container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center mb-12">
-          <span className="text-xs font-bold tracking-widest text-[var(--color-accent)] uppercase mb-2">Curated Worlds</span>
-          <h2 className="font-heading text-3xl sm:text-5xl font-bold text-[var(--color-text-primary)]">
+      <section className="py-24 container mx-auto px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col items-center text-center mb-16">
+          <span className="text-xs font-bold tracking-widest text-[var(--color-accent)] uppercase mb-3">Curated Worlds</span>
+          <h2 className="font-heading text-4xl sm:text-5xl font-bold text-[var(--color-text-primary)]">
             Explore Our Collections
           </h2>
-          <div className="w-12 h-0.5 bg-[var(--color-accent)] mt-4" />
+          <div className="w-12 h-0.5 bg-[var(--color-accent)] mt-6" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -148,7 +148,7 @@ export default async function Home() {
               <Link 
                 key={col.href}
                 href={col.href}
-                className={`group relative rounded-2xl overflow-hidden border border-[var(--color-border)] bg-white shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col ${
+                className={`group relative rounded-2xl overflow-hidden border border-[var(--color-border)] bg-white shadow-[var(--shadow-custom)] hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col ${
                   idx === 0 || idx === 1 ? "md:col-span-1 lg:col-span-1" : ""
                 }`}
               >
@@ -161,7 +161,7 @@ export default async function Home() {
                     unoptimized
                   />
                   {col.badge && (
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[var(--color-brand)] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-[var(--color-brand)] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
                       {col.badge}
                     </div>
                   )}
@@ -169,7 +169,7 @@ export default async function Home() {
                 
                 <div className="p-6 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
                   <div>
-                    <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
+                    <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-2xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
                       {col.title}
                     </h3>
                     <p className="text-sm text-[var(--color-text-secondary)] font-medium">
@@ -177,14 +177,14 @@ export default async function Home() {
                     </p>
                   </div>
                   
-                  <div className="mt-6 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[#008060] font-bold text-sm">Buy Now</span>
+                  <div className="mt-8 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[var(--color-brand)] font-bold text-sm hover:text-[var(--color-accent)] transition-colors">Buy Now</span>
                       <span className="text-[10px] text-[var(--color-text-secondary)]">
                         {availableCount > 0 ? `${availableCount} pieces available` : "Out of stock"}
                       </span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all shadow-sm">
                       <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>

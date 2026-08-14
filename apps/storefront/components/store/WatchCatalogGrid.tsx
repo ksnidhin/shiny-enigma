@@ -96,21 +96,18 @@ export function WatchCatalogGrid({
 
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-10">
-      {/* Collection Header Banner */}
-      <div className="bg-[#173528] text-white rounded-3xl p-8 md:p-12 mb-10 relative overflow-hidden shadow-xl">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold uppercase tracking-wider mb-4">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-            <span>100% Verified Horology</span>
-          </div>
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3">
-            {collectionTitle}
-          </h1>
-          <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
-            {collectionSubtitle || "Explore our authenticated inventory. Every watch undergoes extensive mechanical regulation and verification by expert horologists."}
-          </p>
+      {/* Collection Header */}
+      <div className="py-8 md:py-12 mb-10 border-b border-[var(--color-border)] text-center max-w-3xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-surface)] text-[var(--color-accent)] text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6">
+          <ShieldCheck className="w-4 h-4" />
+          <span>100% Verified Horology</span>
         </div>
+        <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-text-primary)] mb-6">
+          {collectionTitle}
+        </h1>
+        <p className="text-[var(--color-text-secondary)] text-sm md:text-base leading-relaxed font-light">
+          {collectionSubtitle || "Explore our authenticated inventory. Every watch undergoes extensive mechanical regulation and verification by expert horologists."}
+        </p>
       </div>
 
       {/* Toolbar Controls */}
@@ -168,29 +165,29 @@ export function WatchCatalogGrid({
       {/* Main Grid + Sidebar Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Desktop Sidebar Filters */}
-        <div className={`lg:block ${showFiltersMobile ? "block" : "hidden"} space-y-6 bg-white p-6 rounded-2xl border border-[var(--color-border)] shadow-sm h-fit`}>
+        <div className={`lg:block ${showFiltersMobile ? "block" : "hidden"} space-y-8 bg-white p-6 rounded-2xl border border-[var(--color-border)] shadow-sm h-fit`}>
           <div className="flex items-center justify-between pb-4 border-b border-black/5">
             <span className="font-heading text-xl font-bold flex items-center gap-2">
               <SlidersHorizontal className="w-5 h-5 text-[var(--color-brand)]" />
               <span>Filter Catalog</span>
             </span>
             {activeFiltersCount > 0 && (
-              <button onClick={clearFilters} className="text-xs text-[var(--color-accent)] font-semibold hover:underline">
+              <button onClick={clearFilters} className="text-sm text-[var(--color-accent)] font-semibold hover:underline">
                 Clear All
               </button>
             )}
           </div>
 
           {/* Brand Filter */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--color-text-primary)]">Brand</h3>
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Brand</h3>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedBrand("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   selectedBrand === "all"
                     ? "bg-[var(--color-brand)] text-white font-bold shadow-sm"
-                    : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-gray-200"
+                    : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
                 }`}
               >
                 All Brands
@@ -199,10 +196,10 @@ export function WatchCatalogGrid({
                 <button
                   key={brand}
                   onClick={() => setSelectedBrand(brand)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     selectedBrand.toLowerCase() === brand.toLowerCase()
                       ? "bg-[var(--color-brand)] text-white font-bold shadow-sm"
-                      : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-gray-200"
+                      : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
                   }`}
                 >
                   {brand}
@@ -212,9 +209,9 @@ export function WatchCatalogGrid({
           </div>
 
           {/* Price Range Filter */}
-          <div className="space-y-3 pt-4 border-t border-black/5">
-            <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--color-text-primary)]">Price Range</h3>
-            <div className="flex flex-col space-y-2 text-xs font-medium">
+          <div className="space-y-4 pt-6 border-t border-black/5">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Price Range</h3>
+            <div className="flex flex-col space-y-3 text-sm font-medium text-[var(--color-text-primary)]">
               {[
                 { label: "All Prices", value: "all" },
                 { label: "Under Rs. 5,000", value: "under_5k" },
@@ -222,7 +219,7 @@ export function WatchCatalogGrid({
                 { label: "Rs. 25,000 - Rs. 50,000", value: "25k_50k" },
                 { label: "Above Rs. 50,000", value: "above_50k" },
               ].map((opt) => (
-                <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer py-1 hover:text-[var(--color-brand)]">
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer py-1 hover:text-[var(--color-accent)] transition-colors">
                   <input
                     type="radio"
                     name="priceRange"
@@ -237,9 +234,9 @@ export function WatchCatalogGrid({
           </div>
 
           {/* Condition Grade Filter */}
-          <div className="space-y-3 pt-4 border-t border-black/5">
-            <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--color-text-primary)]">Condition</h3>
-            <div className="flex flex-col space-y-2 text-xs font-medium">
+          <div className="space-y-4 pt-6 border-t border-black/5">
+            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Condition</h3>
+            <div className="flex flex-col space-y-3 text-sm font-medium text-[var(--color-text-primary)]">
               {[
                 { label: "All Conditions", value: "all" },
                 { label: "Brand New / Sealed", value: "new" },
@@ -247,7 +244,7 @@ export function WatchCatalogGrid({
                 { label: "Excellent (Original)", value: "excellent" },
                 { label: "Very Good (Patina)", value: "very_good" },
               ].map((opt) => (
-                <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer py-1 hover:text-[var(--color-brand)]">
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer py-1 hover:text-[var(--color-accent)] transition-colors">
                   <input
                     type="radio"
                     name="conditionGrade"
@@ -285,7 +282,7 @@ export function WatchCatalogGrid({
               {watches.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col group relative"
+                  className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col group relative"
                 >
                   <Link href={`/products/${product.slug}`} className="relative h-64 w-full bg-[#EAE4DB] overflow-hidden block">
                     <Image
@@ -338,7 +335,7 @@ export function WatchCatalogGrid({
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-xs text-[var(--color-text-secondary)] mt-1.5 line-clamp-1 font-normal">
+                      <p className="text-sm text-[var(--color-text-secondary)] mt-1.5 line-clamp-1 font-normal">
                         {product.condition_label}
                       </p>
                     </div>
@@ -357,7 +354,7 @@ export function WatchCatalogGrid({
 
                       <Link
                         href={`/products/${product.slug}`}
-                        className="px-3.5 py-2 rounded-xl bg-[var(--color-bg-primary)] group-hover:bg-[var(--color-brand)] text-[var(--color-text-primary)] group-hover:text-white text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-1.5"
+                        className="px-4 py-2 rounded-xl bg-[var(--color-bg-primary)] group-hover:bg-[var(--color-brand)] text-[var(--color-text-primary)] group-hover:text-white text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-1.5"
                       >
                         <span>View</span>
                       </Link>
