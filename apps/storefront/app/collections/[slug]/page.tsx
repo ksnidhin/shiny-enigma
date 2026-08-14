@@ -34,7 +34,14 @@ const getCollectionMeta = (slug: string, count?: number): { title: string; subti
       subtitle: `Explore our entire inventory of ${count || ''} verified timepieces. Filter by brand, era, price range, and mechanical specifications.`
     }
   }
-  return meta[slug] || meta["all"]
+  if (meta[slug]) return meta[slug]
+  
+  // For dynamically added categories that are not in the hardcoded list
+  const dynamicTitle = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  return {
+    title: dynamicTitle,
+    subtitle: `Explore our collection of ${count || ''} ${dynamicTitle} timepieces.`
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -53,11 +60,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const result = await fetchWatches(slug === "all" ? {} : { collection: slug })
   
   if (result.data.length === 0 && slug !== "all") {
-    // If no products, fallback to not found or just show empty. Let's just show empty for now, unless slug is completely invalid.
-    // Assuming valid slugs are those in the getCollectionMeta switch.
-    if (!["casio", "japanese-vintage", "swiss-vintage", "luxury-chronographs", "straps-accessories", "hmt-watches"].includes(slug)) {
-       notFound()
-    }
+    // We now allow dynamic categories, so we simply show an empty grid instead of throwing a 404.
   }
 
   const metaCount = slug === "all" ? result.total : result.count;
