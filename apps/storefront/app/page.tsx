@@ -7,11 +7,13 @@ import { DynamicReviews } from "@/components/store/DynamicReviews"
 import { InstagramFeed } from "@/components/store/InstagramFeed"
 import { fetchWatches, fetchStats } from "@/lib/api"
 
+const API_BASE = process.env.INTERNAL_API_URL || "http://localhost:9000/api"
+
 async function getHeroSlides() {
   try {
-    const res = await fetch("http://localhost:9000/api/hero", { next: { revalidate: 60 } })
+    const res = await fetch(`${API_BASE}/hero`, { next: { revalidate: 30 } })
     const json = await res.json()
-    if (json.success && json.data.length > 0) return json.data
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) return json.data
   } catch {}
   return []
 }
