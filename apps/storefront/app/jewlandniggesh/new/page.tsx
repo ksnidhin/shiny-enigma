@@ -144,7 +144,7 @@ export default function NewTimepiecePage() {
     if (res.success) {
       setSuccess(true)
       setTimeout(() => {
-        router.push("/admin")
+        router.push("/jewlandniggesh")
       }, 1500)
     } else {
       setError(res.message || "Failed to create product.")
@@ -155,7 +155,7 @@ export default function NewTimepiecePage() {
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href="/admin" className="p-2 border border-[#D2D5D9] rounded-md hover:bg-[#F4F6F8] transition-colors">
+          <Link href="/jewlandniggesh" className="p-2 border border-[#D2D5D9] rounded-md hover:bg-[#F4F6F8] transition-colors">
             <ArrowLeft className="w-5 h-5 text-[#5C5F62]" />
           </Link>
           <h1 className="text-xl font-bold text-[#202223]">Add Product</h1>

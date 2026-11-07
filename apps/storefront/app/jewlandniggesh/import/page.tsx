@@ -88,7 +88,7 @@ export default function BulkImportPage() {
     
     if (res.success) {
       setSuccess(`Successfully imported ${parsedData.length} timepieces!`)
-      setTimeout(() => router.push("/admin"), 2000)
+      setTimeout(() => router.push("/jewlandniggesh"), 2000)
     } else {
       setError(res.message || "Bulk import failed")
     }
@@ -109,7 +109,7 @@ export default function BulkImportPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+        <Link href="/jewlandniggesh" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Inventory Archive</span>
         </Link>

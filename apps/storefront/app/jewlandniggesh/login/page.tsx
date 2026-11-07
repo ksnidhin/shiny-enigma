@@ -14,14 +14,14 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
-      const res = await fetch("/admin/auth-api", {
+      const res = await fetch("/jewlandniggesh/auth-api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       })
 
       if (res.ok) {
-        window.location.href = "/admin"
+        window.location.href = "/jewlandniggesh"
       } else {
         setError("Invalid password")
       }

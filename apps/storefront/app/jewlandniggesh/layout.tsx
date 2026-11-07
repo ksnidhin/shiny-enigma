@@ -8,11 +8,11 @@ import { LayoutDashboard, PlusCircle, LogOut, Package, Image as ImageIcon, Messa
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const isLoginPage = pathname === "/admin/login"
+  const isLoginPage = pathname === "/jewlandniggesh/login"
 
   const handleSignOut = async () => {
-    await fetch("/api/admin/auth", { method: "DELETE" })
-    router.push("/admin/login")
+    await fetch("/jewlandniggesh/auth-api", { method: "DELETE" })
+    router.push("/jewlandniggesh/login")
   }
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
@@ -22,12 +22,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const navItems = [
-    { name: "Products", href: "/admin", icon: LayoutDashboard },
-    { name: "Add Product", href: "/admin/new", icon: PlusCircle },
-    { name: "Bulk Import", href: "/admin/import", icon: Package },
-    { name: "Hero Images", href: "/admin/hero", icon: ImageIcon },
-    { name: "Collections", href: "/admin/collections", icon: LayoutDashboard },
-    { name: "Reviews", href: "/admin/reviews", icon: MessageCircle },
+    { name: "Products", href: "/jewlandniggesh", icon: LayoutDashboard },
+    { name: "Add Product", href: "/jewlandniggesh/new", icon: PlusCircle },
+    { name: "Bulk Import", href: "/jewlandniggesh/import", icon: Package },
+    { name: "Hero Images", href: "/jewlandniggesh/hero", icon: ImageIcon },
+    { name: "Collections", href: "/jewlandniggesh/collections", icon: LayoutDashboard },
+    { name: "Reviews", href: "/jewlandniggesh/reviews", icon: MessageCircle },
   ]
 
   return (
@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside className={`w-64 bg-[#EBEBEB] border-r border-[#D2D5D9] flex flex-col fixed inset-y-0 left-0 z-30 transition-transform transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
         <div className="p-6 flex items-center justify-between">
-          <Link href="/admin" className="text-xl font-bold tracking-tight text-[#202223]" onClick={() => setIsMobileMenuOpen(false)}>
+          <Link href="/jewlandniggesh" className="text-xl font-bold tracking-tight text-[#202223]" onClick={() => setIsMobileMenuOpen(false)}>
             Store Admin
           </Link>
           <button className="md:hidden text-gray-500" onClick={() => setIsMobileMenuOpen(false)}>
@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
             <h1 className="text-sm font-semibold text-[#202223] capitalize hidden sm:block">
-              {pathname.split("/").pop() === "admin" ? "Products" : pathname.split("/").pop()}
+              {pathname.split("/").pop() === "jewlandniggesh" ? "Products" : pathname.split("/").pop()}
             </h1>
           </div>
           <Link href="/" target="_blank" className="text-sm font-medium text-[#008060] hover:underline">
