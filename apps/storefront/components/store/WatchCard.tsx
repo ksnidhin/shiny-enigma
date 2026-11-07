@@ -56,11 +56,11 @@ export function WatchCard({ watch }: { watch: WatchProduct }) {
           <Bookmark className={`w-4 h-4 ${saved ? "fill-white" : ""}`} />
         </button>
 
-        {/* Sold-out Overlay */}
+        {/* Clean Tasteful SOLD Badge in Corner — No Darkening / Masking / Watermarks */}
         {!watch.in_stock && (
-          <div className="absolute inset-0 bg-[#0E1620]/75 backdrop-blur-xs flex items-center justify-center p-3 z-10 pointer-events-none">
-            <span className="bg-white/10 text-white border border-white/30 text-[10px] font-mono font-bold tracking-widest px-3 py-1 uppercase">
-              ARCHIVED / SOLD
+          <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
+            <span className="bg-[#0E1620] text-white border border-[#D8D1C5]/40 text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 uppercase shadow-sm">
+              SOLD
             </span>
           </div>
         )}
@@ -87,14 +87,10 @@ export function WatchCard({ watch }: { watch: WatchProduct }) {
             </span>
           </div>
 
-          {/* Badge: ONE PIECE or custom badge */}
-          {watch.in_stock ? (
+          {/* Badge: ONE PIECE for in-stock watches (no duplicate sold labels on card) */}
+          {watch.in_stock && (
             <span className="border border-[#C85A17]/60 text-[#C85A17] font-mono text-[10px] font-bold px-2 py-0.5 tracking-wider uppercase">
               {watch.badge || "ONE PIECE"}
-            </span>
-          ) : (
-            <span className="border border-gray-400 text-gray-500 font-mono text-[10px] font-medium px-2 py-0.5 tracking-wider uppercase">
-              SOLD
             </span>
           )}
         </div>

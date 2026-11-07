@@ -15,7 +15,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   Share2,
-  Bookmark
+  Bookmark,
+  Maximize2,
+  X
 } from "lucide-react"
 import { isSaved, toggleSaved } from "@/lib/wishlist"
 
@@ -40,6 +42,11 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
   const [activeImageIndex, setActiveImageIndex] = React.useState<number>(0)
   const [saved, setSaved] = React.useState<boolean>(false)
 
+  // Fullscreen Viewer state
+  const [viewerOpen, setViewerOpen] = React.useState<boolean>(false)
+  const [viewerIndex, setViewerIndex] = React.useState<number>(0)
+  const touchStartX = React.useRef<number | null>(null)
+
   React.useEffect(() => {
     setSaved(isSaved(watch.id))
     const handler = () => setSaved(isSaved(watch.id))
@@ -47,20 +54,92 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
     return () => window.removeEventListener("rtc_saved_updated", handler)
   }, [watch.id])
 
-  const handleToggleBookmark = () => {
+  const handleToggleBookmark = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     const nowSaved = toggleSaved(watch.id)
     setSaved(nowSaved)
   }
 
-  const handlePrevImage = () => {
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     setActiveImageIndex(prev => (prev === 0 ? gallery.length - 1 : prev - 1))
   }
 
-  const handleNextImage = () => {
+  const handleNextImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     setActiveImageIndex(prev => (prev + 1) % gallery.length)
   }
 
-  // WhatsApp Actions matching existing business rules
+  // Fullscreen viewer navigation handlers
+  const handleViewerPrev = () => {
+    setViewerIndex(prev => {
+      const newIdx = prev === 0 ? gallery.length - 1 : prev - 1
+      setActiveImageIndex(newIdx)
+      return newIdx
+    })
+  }
+
+  const handleViewerNext = () => {
+    setViewerIndex(prev => {
+      const newIdx = (prev + 1) % gallery.length
+      setActiveImageIndex(newIdx)
+      return newIdx
+    })
+  }
+
+  const openViewerAt = (idx: number) => {
+    setActiveImageIndex(idx)
+    setViewerIndex(idx)
+    setViewerOpen(true)
+  }
+
+  // Keyboard navigation & body scroll locking for fullscreen viewer
+  React.useEffect(() => {
+    if (!viewerOpen) return
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setViewerOpen(false)
+      } else if (e.key === "ArrowLeft") {
+        handleViewerPrev()
+      } else if (e.key === "ArrowRight") {
+        handleViewerNext()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.body.style.overflow = originalOverflow
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [viewerOpen, gallery.length])
+
+  // Touch swipe support for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return
+    const touchEndX = e.changedTouches[0].clientX
+    const diff = touchStartX.current - touchEndX
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleViewerNext()
+      } else {
+        handleViewerPrev()
+      }
+    }
+    touchStartX.current = null
+  }
+
+  // WhatsApp Actions matching existing business rules (active for in_stock watches only)
   const handleBuyNowWhatsApp = () => {
     const pageUrl = typeof window !== "undefined" ? window.location.href : ""
     const text = `Hi RetroTimeCo! I'm interested to buy this timepiece:\n\n*${watch.name}*\nRef: ${watch.reference_number || "Vintage"}\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\nLink: ${pageUrl}\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`
@@ -73,13 +152,9 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
     window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank")
   }
 
-  const handleSourcingWhatsApp = () => {
-    const pageUrl = typeof window !== "undefined" ? window.location.href : ""
-    const text = `Hi RetroTimeCo! I noticed this timepiece is archived/sold:\n\n*${watch.name}* (Ref: ${watch.reference_number || "Vintage"})\nLink: ${pageUrl}\n\nCould you please help me source a similar piece?`
-    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank")
-  }
-
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     const url = typeof window !== "undefined" ? window.location.href : ""
     if (navigator.share) {
       try {
@@ -109,7 +184,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
     <div className="min-h-screen bg-[#F4EFE6] py-6 sm:py-10">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-5xl">
         
-        {/* 1. Breadcrumbs (Reference 2 style) */}
+        {/* 1. Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="font-mono text-xs uppercase tracking-wider text-[#5C646D] mb-6 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
           <Link href="/" className="hover:text-[#11161B] transition-colors">HOME</Link>
           <span>/</span>
@@ -120,19 +195,29 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           </Link>
         </nav>
 
-        {/* 2. Photography Showcase (Hero Image + Thumbnails) */}
+        {/* 2. Photography Showcase (Hero Image + Fullscreen Trigger + Thumbnails) */}
         <div className="space-y-4 mb-8">
-          <div className="relative aspect-4/3 sm:aspect-16/10 w-full bg-[#16212E] border border-[#D8D1C5] overflow-hidden group">
+          <div 
+            onClick={() => openViewerAt(activeImageIndex)}
+            className="relative aspect-4/3 sm:aspect-16/10 w-full bg-[#16212E] border border-[#D8D1C5] overflow-hidden group cursor-zoom-in"
+            title="Click to view full screen photograph"
+          >
             <Image
               src={activeImage}
               alt={watch.name}
               fill
               priority
               sizes="(max-width: 768px) 100vw, 900px"
-              className="object-cover object-center transition-all duration-300"
+              className="object-cover object-center transition-all duration-300 group-hover:scale-102"
             />
 
-            {/* Slide Index Counter & Dash Pagination (Reference 2: "01 / 08") */}
+            {/* Subtle Zoom Indicator */}
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-[#0E1620]/80 backdrop-blur-xs px-2.5 py-1 text-white/90 font-mono text-[11px] border border-white/10 opacity-80 group-hover:opacity-100 transition-opacity">
+              <Maximize2 className="w-3.5 h-3.5 text-[#C85A17]" />
+              <span className="hidden sm:inline">FULLSCREEN</span>
+            </div>
+
+            {/* Slide Index Counter & Dash Pagination */}
             <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 bg-[#0E1620]/80 backdrop-blur-xs px-3 py-1.5 border border-white/10 text-white font-mono text-xs">
               <span className="font-bold tracking-wider">
                 {slideNumFormatted} / {totalNumFormatted}
@@ -175,39 +260,30 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                 <button
                   onClick={handlePrevImage}
                   aria-label="Previous photograph"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleNextImage}
                   aria-label="Next photograph"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </>
             )}
-
-            {/* Sold-out Watermark */}
-            {!watch.in_stock && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 pointer-events-none">
-                <span className="bg-[#0E1620] text-white font-mono font-bold text-xs tracking-[0.2em] px-4 py-2 border border-white/20 uppercase">
-                  ARCHIVED / SOLD TO COLLECTOR
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* Horizontal Thumbnails Carousel (Reference 2) */}
+          {/* Horizontal Thumbnails Carousel — Clicking opens fullscreen at that photo */}
           {gallery.length > 1 && (
             <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
               {gallery.map((imgUrl, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setActiveImageIndex(idx)}
-                  aria-label={`View photo ${idx + 1}`}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-[#EAE4DB] overflow-hidden border transition-all ${
+                  onClick={() => openViewerAt(idx)}
+                  aria-label={`View photo ${idx + 1} in fullscreen`}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-[#EAE4DB] overflow-hidden border transition-all cursor-zoom-in ${
                     idx === activeImageIndex
                       ? "border-2 border-[#C85A17] scale-102"
                       : "border-[#D8D1C5] opacity-75 hover:opacity-100"
@@ -222,17 +298,14 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
 
         {/* 3. Title & Horological Identity Header */}
         <div className="space-y-3 mb-6">
-          {/* RTC Archive Object Tag */}
           <div className="font-mono text-xs uppercase tracking-wider text-[#5C646D]">
             RTC  /  ARCHIVE OBJECT {watch.reference_number || "VNTG-SPEC"}
           </div>
 
-          {/* Product Name */}
           <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-[#11161B] leading-tight">
             {watch.name}
           </h1>
 
-          {/* Era • Brand • Movement Line */}
           <div className="font-mono text-xs sm:text-sm text-[#5C646D] flex flex-wrap items-center gap-2">
             <span>{watch.era_label || "Vintage Era"}</span>
             <span>•</span>
@@ -241,7 +314,6 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
             <span>{watch.specs?.movement_caliber ? `Calibre ${watch.specs.movement_caliber}` : watch.model_name}</span>
           </div>
 
-          {/* Rating */}
           <div className="flex items-center gap-1.5 text-xs font-mono text-[#5C646D]">
             <div className="flex text-[#C85A17]">
               {[...Array(5)].map((_, i) => (
@@ -253,8 +325,8 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           </div>
         </div>
 
-        {/* 4. Price & Inclusions Strip */}
-        <div className="flex flex-wrap items-baseline gap-4 py-4 mb-6 border-y border-[#D8D1C5]">
+        {/* 4. Price & SOLD Indicator Strip (Clean Tasteful SOLD Badge) */}
+        <div className="flex flex-wrap items-center gap-4 py-4 mb-6 border-y border-[#D8D1C5]">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-3xl sm:text-4xl font-black text-[#11161B]">
               ₹ {watch.price.toLocaleString("en-IN")}
@@ -266,20 +338,25 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
             )}
           </div>
 
-          <div className="hidden sm:block text-[#D8D1C5]">|</div>
-
-          <span className="font-mono text-xs font-bold tracking-wider text-[#11161B] uppercase border-b-2 border-[#C85A17] pb-0.5">
-            PRICE INCLUDES SHIPPING
-          </span>
+          {!watch.in_stock ? (
+            <span className="bg-[#0E1620] text-white font-mono text-xs font-bold tracking-widest px-3 py-1 uppercase border border-[#D8D1C5]/30">
+              SOLD
+            </span>
+          ) : (
+            <>
+              <div className="hidden sm:block text-[#D8D1C5]">|</div>
+              <span className="font-mono text-xs font-bold tracking-wider text-[#11161B] uppercase border-b-2 border-[#C85A17] pb-0.5">
+                PRICE INCLUDES SHIPPING
+              </span>
+            </>
+          )}
         </div>
 
-        {/* 5. HOROLOGIST CONDITION REPORT (Navy Table matching Reference 2) */}
+        {/* 5. HOROLOGIST CONDITION REPORT */}
         <div className="mb-6 border border-[#0E1620] overflow-hidden">
-          {/* Dark Navy Table Header */}
           <div className="bg-[#0E1620] text-white px-4 py-2.5 font-mono text-xs font-bold tracking-[0.18em] uppercase">
             HOROLOGIST CONDITION REPORT
           </div>
-          {/* Table Rows */}
           <div className="bg-[#ECE5DA] divide-y divide-[#D8D1C5] font-mono text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-12 p-3 sm:px-4 sm:py-3 gap-1 sm:gap-4">
               <span className="sm:col-span-4 text-[#5C646D] font-bold uppercase tracking-wider">
@@ -300,40 +377,28 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           </div>
         </div>
 
-        {/* 6. Primary Action Buttons (Reference 2) */}
-        <div className="space-y-3 mb-8">
-          {watch.in_stock ? (
-            <>
-              {/* Button 1: Buy via WhatsApp */}
-              <button
-                onClick={handleBuyNowWhatsApp}
-                className="w-full py-4 px-6 bg-[#C85A17] hover:bg-[#B34E12] text-white font-mono text-sm font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C85A17]/20"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>BUY VIA WHATSAPP — ₹ {watch.price.toLocaleString("en-IN")}</span>
-              </button>
-
-              {/* Button 2: Inquire / Reserve 24h Hold */}
-              <button
-                onClick={handleReserveWhatsApp}
-                className="w-full py-3.5 px-6 bg-[#F4EFE6] hover:bg-[#EAE4D9] text-[#0E1622] border-2 border-[#0E1622] font-mono text-xs font-bold tracking-wider uppercase transition-colors flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>INQUIRE / RESERVE • 24H HOLD</span>
-              </button>
-            </>
-          ) : (
+        {/* 6. Primary Action Buttons — ONLY rendered for in-stock watches (no buttons or marketing CTAs for sold items) */}
+        {watch.in_stock && (
+          <div className="space-y-3 mb-8">
             <button
-              onClick={handleSourcingWhatsApp}
-              className="w-full py-4 px-6 bg-[#0E1620] hover:bg-[#16212E] text-white font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2"
+              onClick={handleBuyNowWhatsApp}
+              className="w-full py-4 px-6 bg-[#C85A17] hover:bg-[#B34E12] text-white font-mono text-sm font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C85A17]/20"
             >
-              <MessageCircle className="w-5 h-5 text-[#C85A17]" />
-              <span>ARCHIVED / SOLD — INQUIRE FOR SOURCING</span>
+              <MessageCircle className="w-5 h-5" />
+              <span>BUY VIA WHATSAPP — ₹ {watch.price.toLocaleString("en-IN")}</span>
             </button>
-          )}
-        </div>
 
-        {/* 7. Trust Value Props (Reference 2: 3-column divider) */}
+            <button
+              onClick={handleReserveWhatsApp}
+              className="w-full py-3.5 px-6 bg-[#F4EFE6] hover:bg-[#EAE4D9] text-[#0E1622] border-2 border-[#0E1622] font-mono text-xs font-bold tracking-wider uppercase transition-colors flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>INQUIRE / RESERVE • 24H HOLD</span>
+            </button>
+          </div>
+        )}
+
+        {/* 7. Trust Value Props */}
         <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#D8D1C5] border-y border-[#D8D1C5] py-4 mb-10 text-center">
           <div className="flex flex-col items-center gap-1.5 py-2 px-3">
             <ShieldCheck className="w-5 h-5 text-[#C85A17]" />
@@ -357,7 +422,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           </div>
         </div>
 
-        {/* 8. HOROLOGICAL SPECIFICATIONS (Reference 2 Table) */}
+        {/* 8. HOROLOGICAL SPECIFICATIONS */}
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
@@ -423,7 +488,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           </div>
         </div>
 
-        {/* 9. HOROLOGICAL ARCHIVE NOTES (Reference 2) */}
+        {/* 9. HOROLOGICAL ARCHIVE NOTES */}
         <div className="mb-12 pb-10 border-b border-[#D8D1C5]">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
@@ -441,7 +506,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           )}
         </div>
 
-        {/* 10. MORE FROM THE ARCHIVE (Related Pieces matching Reference 2) */}
+        {/* 10. MORE FROM THE ARCHIVE */}
         {related && related.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
@@ -471,6 +536,13 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                       sizes="(max-width: 640px) 50vw, 25vw"
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
+                    {!item.in_stock && (
+                      <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                        <span className="bg-[#0E1620] text-white border border-[#D8D1C5]/40 text-[9px] font-mono font-bold tracking-wider px-1.5 py-0.5 uppercase shadow-sm">
+                          SOLD
+                        </span>
+                      </div>
+                    )}
                   </Link>
                   <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
                     <div>
@@ -488,13 +560,19 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
                       <span className="font-mono text-sm sm:text-base font-bold text-[#11161B]">
                         ₹ {item.price.toLocaleString("en-IN")}
                       </span>
-                      <Link
-                        href={`/products/${item.slug}`}
-                        className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#C85A17] hover:text-[#11161B] flex items-center gap-0.5"
-                      >
-                        <span>VIEW PIECE</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </Link>
+                      {!item.in_stock ? (
+                        <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-[#8E9BA8]">
+                          SOLD
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/products/${item.slug}`}
+                          className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#C85A17] hover:text-[#11161B] flex items-center gap-0.5"
+                        >
+                          <span>VIEW PIECE</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -504,6 +582,85 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
         )}
 
       </div>
+
+      {/* FULLSCREEN IMAGE VIEWER MODAL */}
+      {viewerOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-[#0A0E14]/98 backdrop-blur-md flex flex-col justify-between select-none"
+          onClick={() => setViewerOpen(false)}
+        >
+          {/* Top Bar: Slide Counter & Close Button */}
+          <div className="flex items-center justify-between p-4 sm:p-6 text-white z-60" onClick={(e) => e.stopPropagation()}>
+            <div className="font-mono text-xs sm:text-sm font-bold tracking-widest text-[#D8D1C5] bg-[#0E1620] px-3 py-1.5 border border-white/10">
+              {String(viewerIndex + 1).padStart(2, "0")} / {String(gallery.length).padStart(2, "0")}
+            </div>
+            <button
+              onClick={() => setViewerOpen(false)}
+              aria-label="Close fullscreen image viewer"
+              className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border border-white/20"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
+
+          {/* Center Image Stage with Touch Swipes */}
+          <div 
+            className="relative flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Prev Button */}
+            {gallery.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleViewerPrev(); }}
+                aria-label="Previous photograph"
+                className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3.5 rounded-full bg-[#0E1620]/80 hover:bg-[#C85A17] text-white transition-colors z-60 cursor-pointer shadow-lg border border-white/20"
+              >
+                <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+            )}
+
+            {/* High-Resolution Centered Image (never cropped) */}
+            <div className="relative max-h-[82vh] max-w-[92vw] h-full w-full flex items-center justify-center pointer-events-none">
+              <img
+                src={gallery[viewerIndex]}
+                alt={`${watch.name} photograph ${viewerIndex + 1}`}
+                className="max-h-[82vh] max-w-[92vw] w-auto h-auto object-contain shadow-2xl transition-all duration-200 pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Next Button */}
+            {gallery.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleViewerNext(); }}
+                aria-label="Next photograph"
+                className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3.5 rounded-full bg-[#0E1620]/80 hover:bg-[#C85A17] text-white transition-colors z-60 cursor-pointer shadow-lg border border-white/20"
+              >
+                <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnail Strip (if multi-photo) */}
+          {gallery.length > 1 && (
+            <div className="p-3 sm:p-4 flex items-center justify-center gap-2 overflow-x-auto z-60" onClick={(e) => e.stopPropagation()}>
+              {gallery.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { setViewerIndex(idx); setActiveImageIndex(idx); }}
+                  aria-label={`Jump to photo ${idx + 1}`}
+                  className={`relative w-12 h-12 sm:w-16 sm:h-16 shrink-0 bg-black/40 border transition-all cursor-pointer ${
+                    idx === viewerIndex ? "border-2 border-[#C85A17] scale-105" : "border-white/20 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
