@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetroTimeCo Collector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="popup-header">
+    <div class="popup-brand">
+      <div class="popup-logo"></div>
+      <div>
+        <h2>RetroTimeCo</h2>
+        <span class="popup-badge-label">COLLECTOR v1.0</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="popup-body">
+    <!-- Active Status Card -->
+    <div class="popup-card" id="status-card">
+      <div class="popup-row">
+        <span class="popup-label">Target Page</span>
+        <span class="popup-val" id="page-status">Checking...</span>
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Posts in Queue</span>
+        <span class="popup-val-highlight" id="queue-count">0</span>
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Total Exported</span>
+        <span class="popup-val" id="history-count">0</span>
+      </div>
+    </div>
+
+    <!-- Quick Action: Collect Active Post -->
+    <button class="popup-btn popup-btn-action" id="btn-collect-current" style="display:none;">
+      <span>+ Collect Active Post</span>
+    </button>
+
+    <!-- Main Navigation Actions -->
+    <div class="popup-actions">
+      <button class="popup-btn popup-btn-primary" id="btn-open-sidepanel">
+        <span>Open Side Panel Dashboard ↗</span>
+      </button>
+      <button class="popup-btn popup-btn-secondary" id="btn-open-instagram">
+        <span>Go to @retrotimeco.in</span>
+      </button>
+    </div>
+  </main>
+
+  <footer class="popup-footer">
+    <span>Export ready for Antigravity AI ingestion</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

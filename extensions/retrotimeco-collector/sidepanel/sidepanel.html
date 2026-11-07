@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetroTimeCo Collector</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="rtc-header">
+    <div class="rtc-brand">
+      <div class="rtc-logo"></div>
+      <div>
+        <h1>RetroTimeCo</h1>
+        <p class="rtc-subtitle">Instagram Watch Collector</p>
+      </div>
+    </div>
+    <div class="rtc-live-indicator">
+      <span class="rtc-dot"></span>
+      <span id="rtc-tab-status">Instagram Ready</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="rtc-nav">
+    <button class="rtc-nav-btn active" id="tab-queue-btn">
+      Queue (<span id="count-queue">0</span>)
+    </button>
+    <button class="rtc-nav-btn" id="tab-history-btn">
+      Export History (<span id="count-history">0</span>)
+    </button>
+  </nav>
+
+  <!-- View: Queue View -->
+  <main class="rtc-view active" id="view-queue">
+    <!-- Toolbar Controls -->
+    <div class="rtc-toolbar">
+      <div class="rtc-selection-controls">
+        <label class="rtc-checkbox-label">
+          <input type="checkbox" id="select-all-checkbox" checked>
+          <span>Select All</span>
+        </label>
+        <span class="rtc-selected-text" id="selected-summary">0 selected</span>
+      </div>
+      <div class="rtc-toolbar-actions">
+        <button class="rtc-btn-ghost" id="btn-refresh" title="Refresh queue">↻</button>
+        <button class="rtc-btn-ghost rtc-btn-danger" id="btn-clear-queue" title="Clear all queued posts">Clear</button>
+      </div>
+    </div>
+
+    <!-- Export Action Banner -->
+    <div class="rtc-export-bar">
+      <button class="rtc-btn-export" id="btn-export-zip">
+        <span>EXPORT RETROTIMECO-EXPORT.ZIP</span>
+        <span class="rtc-export-counter" id="btn-export-count">0</span>
+      </button>
+      <p class="rtc-export-note">Packages structured JSON + original high-res photographs</p>
+    </div>
+
+    <!-- Posts Queue Container -->
+    <div class="rtc-posts-list" id="posts-container">
+      <!-- Dynamic Post Cards Injected Here -->
+    </div>
+
+    <!-- Empty State -->
+    <div class="rtc-empty-state" id="empty-state">
+      <div class="rtc-empty-icon">⌚</div>
+      <h3>No Watch Posts Queued</h3>
+      <p>Browse your Instagram watch posts and click <strong>[+ Collect Post]</strong> or select posts from the grid to queue them for migration.</p>
+      <button class="rtc-btn-secondary" id="btn-open-instagram">Open Instagram ↗</button>
+    </div>
+  </main>
+
+  <!-- View: History View -->
+  <main class="rtc-view" id="view-history">
+    <div class="rtc-toolbar">
+      <span class="rtc-selected-text">Previously Exported Posts</span>
+      <button class="rtc-btn-ghost rtc-btn-danger" id="btn-clear-history">Clear History</button>
+    </div>
+    <div class="rtc-history-list" id="history-container">
+      <!-- History Cards Injected Here -->
+    </div>
+    <div class="rtc-empty-state" id="empty-history-state" style="display:none;">
+      <div class="rtc-empty-icon">📁</div>
+      <h3>No Export History Yet</h3>
+      <p>When you export a ZIP file, the collected post IDs are remembered here so you never export the same post twice.</p>
+    </div>
+  </main>
+
+  <!-- Export Progress Overlay Modal -->
+  <div class="rtc-modal-overlay" id="export-modal" style="display:none;">
+    <div class="rtc-modal-card">
+      <div class="rtc-modal-header">
+        <div class="rtc-logo"></div>
+        <h3>Packaging Export ZIP</h3>
+      </div>
+      
+      <p class="rtc-progress-status" id="progress-status-text">Preparing post media...</p>
+      
+      <div class="rtc-progress-bar-bg">
+        <div class="rtc-progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+      </div>
+      <div class="rtc-progress-meta">
+        <span id="progress-count-text">Post 0 of 0</span>
+        <span id="progress-percent-text">0%</span>
+      </div>
+
+      <div class="rtc-progress-log" id="progress-log"></div>
+
+      <div class="rtc-modal-actions" id="modal-actions" style="display:none;">
+        <button class="rtc-btn-primary" id="btn-modal-close">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Standalone JSZip Library -->
+  <script src="../lib/jszip.min.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+/* RetroTimeCo Collector — Popup Styles */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #0E1620;
+  color: #F4EFE6;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.popup-header {
+  padding: 14px 16px;
+  background: #16212E;
+  border-bottom: 1px solid #263545;
+}
+
+.popup-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #C85A17;
+  background: #0E1620;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.popup-logo::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  background: #C85A17;
+  border-radius: 50%;
+}
+
+.popup-header h2 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.popup-badge-label {
+  font-size: 10px;
+  color: #C85A17;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.popup-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.popup-card {
+  background: #141E2A;
+  border: 1px solid #263545;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popup-label {
+  font-size: 11px;
+  color: #8E9BA8;
+}
+
+.popup-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #F4EFE6;
+  font-family: monospace;
+}
+
+.popup-val-highlight {
+  font-size: 14px;
+  font-weight: 800;
+  color: #C85A17;
+  font-family: monospace;
+}
+
+.popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.popup-btn-primary {
+  background: #C85A17;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 12px rgba(200, 90, 23, 0.35);
+}
+
+.popup-btn-primary:hover {
+  background: #B34E12;
+  box-shadow: 0 6px 16px rgba(200, 90, 23, 0.5);
+}
+
+.popup-btn-secondary {
+  background: #1E2D3D;
+  color: #F4EFE6;
+  border: 1px solid #32475E;
+}
+
+.popup-btn-secondary:hover {
+  background: #273A4F;
+  border-color: #496380;
+}
+
+.popup-btn-action {
+  background: #1B5E20;
+  color: #FFFFFF;
+  border: 1px solid #4CAF50;
+}
+
+.popup-btn-action:hover {
+  background: #2E7D32;
+}
+
+.popup-footer {
+  padding: 8px 16px;
+  background: #121C28;
+  border-top: 1px solid #263545;
+  text-align: center;
+  font-size: 10px;
+  color: #8E9BA8;
+  font-family: monospace;
+}
