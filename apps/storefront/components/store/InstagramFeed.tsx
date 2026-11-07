@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useRef } from "react"
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -13,7 +12,6 @@ const InstagramIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-// We use Instagram embed iframes here so the posts are live and don't rely on expiring Facebook CDN image tokens!
 const INSTAGRAM_POST_IDS = [
   "DYj2lSlFNKZ",
   "DYj2bHzFA3S",
@@ -43,46 +41,52 @@ export function InstagramFeed() {
   }
 
   return (
-    <section className="py-24 bg-white border-t border-[var(--color-border)] overflow-hidden">
+    <section className="py-16 md:py-20 bg-[#F4EFE6] border-b border-[#D8D1C5] overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-5xl font-extrabold font-heading text-[var(--color-text-primary)] tracking-tight">
-              Join the Club
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
+              <span className="font-mono text-[11px] font-bold tracking-[0.2em] text-[#C85A17] uppercase">
+                COMMUNITY &amp; DISPATCHES
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold font-heading text-[#11161B] tracking-tight uppercase">
+              Follow The Workshop
             </h2>
-            <p className="mt-4 text-[var(--color-text-secondary)] text-lg">
-              Follow our daily horological discoveries and behind-the-scenes restoration work on Instagram.
+            <p className="mt-2 text-[#5C646D] text-xs sm:text-sm font-mono max-w-xl">
+              Daily vintage arrivals, movement timing graphs, and restoration stories live from Chennai.
             </p>
           </div>
           <Link
             href="https://www.instagram.com/retrotimeco.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white rounded-full font-bold text-sm tracking-wider uppercase shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:-translate-y-0.5 transition-all w-fit"
+            className="group inline-flex items-center gap-2 px-5 py-3 bg-[#0E1620] hover:bg-[#16212E] text-white font-mono text-xs font-bold uppercase tracking-wider transition-all w-fit"
           >
-            <InstagramIcon className="w-5 h-5" />
+            <InstagramIcon className="w-4 h-4 text-[#C85A17]" />
             <span>@retrotimeco.in</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         <div className="relative group">
           <button 
             onClick={scrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-[#202223] opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+            aria-label="Scroll left"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#0E1620] text-white shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           
           <div 
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 pt-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4 pt-2"
           >
             {INSTAGRAM_POST_IDS.map((postId, idx) => (
               <div 
                 key={idx}
-                className="snap-start shrink-0 relative w-[320px] h-[450px] rounded-2xl overflow-hidden shadow-sm border border-[var(--color-border)] bg-[#fafafa]"
+                className="snap-start shrink-0 relative w-[280px] sm:w-[320px] h-[430px] overflow-hidden border border-[#D8D1C5] bg-[#F8F5EE]"
               >
                 <iframe
                   src={`https://www.instagram.com/p/${postId}/embed/`}
@@ -99,9 +103,10 @@ export function InstagramFeed() {
 
           <button 
             onClick={scrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-[#202223] opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Scroll right"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#0E1620] text-white shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>

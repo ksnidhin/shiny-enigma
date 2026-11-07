@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 interface HeroSlide {
   id: string
@@ -12,122 +12,139 @@ interface HeroSlide {
   subtitle: string
   linkText: string
   linkUrl: string
+  categoryTag?: string
 }
 
+const DEFAULT_SLIDES: HeroSlide[] = [
+  {
+    id: "vintage-archive-01",
+    imageUrl: "/watch_seiko_vintage_1785170846705.jpg",
+    categoryTag: "VINTAGE WATCHES",
+    title: "GOOD WATCHES. SECOND LIVES.",
+    subtitle: "Authentic vintage timepieces, checked and ready for another wrist.",
+    linkText: "BROWSE THE ARCHIVE ↗",
+    linkUrl: "/collections/all",
+  },
+  {
+    id: "swiss-vintage-02",
+    imageUrl: "/watch_swiss_vintage_1785170866472.jpg",
+    categoryTag: "MAISON HORLOGÈRE",
+    title: "GENEVA HERITAGE. CHENNAI REGULATED.",
+    subtitle: "Collector-grade Swiss mechanicals and chronometers, inspected under magnification.",
+    linkText: "EXPLORE SWISS ARCHIVE ↗",
+    linkUrl: "/collections/swiss-vintage",
+  },
+  {
+    id: "casio-japan-03",
+    imageUrl: "/watch_casio_edifice_1785170834699.jpg",
+    categoryTag: "DIGITAL & RETRO CLASSICS",
+    title: "TIMELESS UTILITY. ICONIC DESIGN.",
+    subtitle: "Official Casio Royale, Vintage Digital, and Edifice editions authenticated in Chennai.",
+    linkText: "DISCOVER CASIO ↗",
+    linkUrl: "/collections/casio",
+  },
+]
+
 export function HeroSlider({ initialSlides = [] }: { initialSlides?: HeroSlide[] }) {
-  const [slides, setSlides] = useState<HeroSlide[]>(initialSlides)
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [slides] = React.useState<HeroSlide[]>(
+    initialSlides.length > 0 ? initialSlides : DEFAULT_SLIDES
+  )
+  const [currentSlide, setCurrentSlide] = React.useState(0)
 
-  useEffect(() => {
-    // If not provided from server, fetch from client
-    if (initialSlides.length === 0) {
-      fetch("/api/hero")
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data.length > 0) {
-            setSlides(data.data)
-          }
-        })
-    }
-  }, [initialSlides])
-
-  useEffect(() => {
+  // Auto-advance slides every 6 seconds
+  React.useEffect(() => {
     if (slides.length <= 1) return
     const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % slides.length)
-    }, 5000)
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 6000)
     return () => clearInterval(interval)
   }, [slides.length])
 
-  if (slides.length === 0) {
-    return (
-      <section className="relative w-full bg-[#111] text-white overflow-hidden py-20 lg:py-32 flex items-center justify-center">
-        <p className="text-white/50">Loading Hero...</p>
-      </section>
-    )
-  }
-
-  const handlePrev = () => {
-    setCurrentSlide(prev => (prev === 0 ? slides.length - 1 : prev - 1))
-  }
-
-  const handleNext = () => {
-    setCurrentSlide(prev => (prev + 1) % slides.length)
-  }
+  const slide = slides[currentSlide] || DEFAULT_SLIDES[0]
+  const currentFormatted = String(currentSlide + 1).padStart(2, "0")
+  const totalFormatted = String(slides.length).padStart(2, "0")
 
   return (
-    <section className="relative w-full bg-[#111] text-white overflow-hidden h-[80vh] min-h-[500px]">
-      {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}
-        >
-          <div className="absolute inset-0 opacity-40 mix-blend-luminosity">
-            {slide.imageUrl && (
-              <Image 
-                src={slide.imageUrl} 
-                alt={slide.title} 
-                fill 
-                className="object-cover object-center"
-                priority={index === 0}
-              />
-            )}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+    <section className="relative w-full bg-[#0E1620] text-white overflow-hidden border-b border-[#1C2736]">
+      {/* Background radial gradient subtle highlight */}
+      <div className="absolute inset-0 bg-radial-gradient from-[#1A2636]/40 via-transparent to-transparent pointer-events-none" />
+
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           
-          <div className="container relative mx-auto px-4 md:px-6 lg:px-8 flex flex-col justify-center h-full max-w-3xl">
-            {slide.subtitle && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-6 max-w-fit">
-                <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] animate-pulse" />
-                <span className="text-xs font-medium tracking-wider uppercase">{slide.subtitle}</span>
-              </div>
-            )}
-            
-            <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-              {slide.title || "The Perfect Destination for Timeless Watches"}
+          {/* Left Column: Editorial Headline & Actions */}
+          <div className="md:col-span-7 flex flex-col justify-center space-y-5 z-10">
+            {/* Category Pill with burnt orange accent dash */}
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-[2px] bg-[#C85A17]" />
+              <span className="text-[11px] font-mono font-bold tracking-[0.2em] text-[#C85A17] uppercase">
+                {slide.categoryTag || "VINTAGE WATCHES"}
+              </span>
+            </div>
+
+            {/* Main Headline (Multi-line high impact) */}
+            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.08] uppercase">
+              {slide.title.includes(".") ? (
+                <>
+                  {slide.title.split(".")[0]}.<br />
+                  <span className="text-white/95">{slide.title.split(".")[1]?.trim() || ""}</span>
+                </>
+              ) : (
+                slide.title
+              )}
             </h1>
-            
-            {slide.linkUrl && slide.linkText && (
-              <div className="flex flex-wrap items-center gap-4 mt-4">
-                <Link 
-                  href={slide.linkUrl}
-                  className="px-8 py-4 bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-medium rounded-full transition-all shadow-lg hover:shadow-xl flex items-center gap-3 text-sm tracking-wider uppercase"
-                >
-                  <span>{slide.linkText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+
+            {/* Subtitle */}
+            <p className="text-sm sm:text-base text-gray-300 font-light max-w-xl leading-relaxed">
+              {slide.subtitle}
+            </p>
+
+            {/* Primary Action Button */}
+            <div className="pt-2">
+              <Link
+                href={slide.linkUrl || "/collections/all"}
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#C85A17] hover:bg-[#B34E12] text-white text-xs font-bold font-mono tracking-widest uppercase transition-all duration-200 shadow-lg shadow-[#C85A17]/20"
+              >
+                <span>{slide.linkText || "BROWSE THE ARCHIVE ↗"}</span>
+              </Link>
+            </div>
+
+            {/* Slide Pagination Counter matching Reference 1 */}
+            <div className="pt-6 flex items-center gap-4 text-xs font-mono text-gray-400">
+              <span className="text-white font-bold tracking-wider">
+                {currentFormatted} / {totalFormatted}
+              </span>
+              <div className="flex items-center gap-1.5">
+                {slides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    aria-label={`Go to slide ${idx + 1}`}
+                    className={`h-[2px] transition-all duration-300 ${
+                      idx === currentSlide ? "w-8 bg-white" : "w-4 bg-white/30 hover:bg-white/60"
+                    }`}
+                  />
+                ))}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      ))}
-      
-      {slides.length > 1 && (
-        <>
-          <button 
-            onClick={handlePrev} 
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/50 border border-white/10 backdrop-blur flex items-center justify-center text-white transition-all"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button 
-            onClick={handleNext} 
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/50 border border-white/10 backdrop-blur flex items-center justify-center text-white transition-all"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-          
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-            {slides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentSlide(idx)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentSlide ? "bg-white w-8" : "bg-white/50"}`}
+
+          {/* Right Column: Horological Watch Imagery */}
+          <div className="md:col-span-5 relative">
+            <div className="relative aspect-4/3 sm:aspect-square w-full rounded-sm overflow-hidden border border-white/10 shadow-2xl bg-[#16212E]">
+              <Image
+                src={slide.imageUrl || "/hero_vintage_watch_1785170825322.jpg"}
+                alt={slide.title}
+                fill
+                priority
+                className="object-cover object-center transition-all duration-700"
               />
-            ))}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0E1620]/60 via-transparent to-transparent pointer-events-none" />
+            </div>
           </div>
-        </>
-      )}
+
+        </div>
+      </div>
     </section>
   )
 }

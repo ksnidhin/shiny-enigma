@@ -1,65 +1,102 @@
-import React from "react"
+"use client"
+
+import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { WatchProduct } from "@/lib/api"
-import { Star } from "lucide-react"
+import { Bookmark } from "lucide-react"
+import { isSaved, toggleSaved } from "@/lib/wishlist"
 
 export function WatchCard({ watch }: { watch: WatchProduct }) {
+  const [saved, setSaved] = React.useState(false)
+
+  React.useEffect(() => {
+    setSaved(isSaved(watch.id))
+    const handler = () => setSaved(isSaved(watch.id))
+    window.addEventListener("rtc_saved_updated", handler)
+    return () => window.removeEventListener("rtc_saved_updated", handler)
+  }, [watch.id])
+
+  const handleToggleBookmark = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const nowSaved = toggleSaved(watch.id)
+    setSaved(nowSaved)
+  }
+
+  // Format era & reference text e.g. "c. 1970s / Ref. 7009"
+  const eraText = watch.era_label ? (watch.era_label.startsWith("c.") ? watch.era_label : `c. ${watch.era_label}`) : "Vintage Era"
+  const refText = watch.reference_number ? `Ref. ${watch.reference_number}` : watch.brand
+  const metaLine = `${eraText}  /  ${refText}`
+
   return (
-    <div className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col group relative h-full">
-      <Link href={`/products/${watch.slug}`} className="relative h-64 w-full bg-[#EAE4DB] overflow-hidden block shrink-0">
-        <Image
-          src={watch.image}
-          alt={watch.name}
-          fill
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-        />
-        {watch.badge && (
-          <span className="absolute top-3 left-3 bg-[var(--color-brand)] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-            {watch.badge}
-          </span>
-        )}
+    <div className="group relative bg-[#F8F5EE] border border-[#D8D1C5] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:border-[#0E1622] hover:shadow-md">
+      {/* Top Image Showcase */}
+      <div className="relative aspect-square w-full bg-[#EAE4DB] overflow-hidden">
+        <Link href={`/products/${watch.slug}`} className="block w-full h-full">
+          <Image
+            src={watch.image || (watch.gallery_images && watch.gallery_images[0]) || "/hero_vintage_watch_1785170825322.jpg"}
+            alt={watch.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+          />
+        </Link>
+
+        {/* Wishlist Bookmark Button (Top-Right) */}
+        <button
+          onClick={handleToggleBookmark}
+          aria-label={saved ? "Remove from saved" : "Save timepiece"}
+          className={`absolute top-2.5 right-2.5 p-2 rounded-sm backdrop-blur-xs transition-colors z-10 ${
+            saved
+              ? "bg-[#C85A17] text-white"
+              : "bg-white/70 text-[#0E1622] hover:bg-white hover:text-[#C85A17]"
+          }`}
+        >
+          <Bookmark className={`w-4 h-4 ${saved ? "fill-white" : ""}`} />
+        </button>
+
+        {/* Sold-out Overlay */}
         {!watch.in_stock && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-            <span className="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg border border-white/20">
-              Sold Out
+          <div className="absolute inset-0 bg-[#0E1620]/75 backdrop-blur-xs flex items-center justify-center p-3 z-10 pointer-events-none">
+            <span className="bg-white/10 text-white border border-white/30 text-[10px] font-mono font-bold tracking-widest px-3 py-1 uppercase">
+              ARCHIVED / SOLD
             </span>
           </div>
         )}
-      </Link>
-      <div className="p-5 flex flex-col flex-1 justify-between bg-white relative">
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-[10px] font-bold tracking-widest uppercase text-[var(--color-accent)] mb-1.5">
-            <span>{watch.brand}</span>
-            <span className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-              <span className="text-gray-500">{watch.rating}</span>
-            </span>
-          </div>
-          <h3 className="font-heading text-lg font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug line-clamp-2">
-            <Link href={`/products/${watch.slug}`}>{watch.name}</Link>
-          </h3>
-          <p className="text-xs text-[var(--color-text-secondary)] mt-1.5 line-clamp-1">
-            {watch.condition_label}
+      </div>
+
+      {/* Card Content */}
+      <div className="p-4 flex flex-col flex-1 justify-between bg-[#F8F5EE]">
+        <div>
+          <Link href={`/products/${watch.slug}`}>
+            <h3 className="font-heading text-base sm:text-lg font-bold text-[#11161B] group-hover:text-[#C85A17] transition-colors leading-snug line-clamp-1">
+              {watch.name}
+            </h3>
+          </Link>
+          <p className="font-mono text-[11px] text-[#5C646D] mt-1 line-clamp-1 tracking-tight">
+            {metaLine}
           </p>
         </div>
-        <div className="pt-4 border-t border-black/5 mt-auto flex items-end justify-between">
-          <div className="flex flex-col">
-            {watch.original_price && (
-              <span className="text-[10px] text-[var(--color-text-secondary)] line-through">
-                Rs. {watch.original_price.toLocaleString("en-IN")}
-              </span>
-            )}
-            <span className="font-heading text-[var(--color-brand)] font-bold text-lg">
-              Rs. {watch.price.toLocaleString("en-IN")}
+
+        {/* Price & Badge / Action */}
+        <div className="mt-4 pt-3 border-t border-[#D8D1C5]/60 flex items-center justify-between">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-mono text-base sm:text-lg font-extrabold text-[#11161B]">
+              ₹ {watch.price.toLocaleString("en-IN")}
             </span>
           </div>
-          <Link
-            href={`/products/${watch.slug}`}
-            className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-brand)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1"
-          >
-            View Details &rarr;
-          </Link>
+
+          {/* Badge: ONE PIECE or custom badge */}
+          {watch.in_stock ? (
+            <span className="border border-[#C85A17]/60 text-[#C85A17] font-mono text-[10px] font-bold px-2 py-0.5 tracking-wider uppercase">
+              {watch.badge || "ONE PIECE"}
+            </span>
+          ) : (
+            <span className="border border-gray-400 text-gray-500 font-mono text-[10px] font-medium px-2 py-0.5 tracking-wider uppercase">
+              SOLD
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,20 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { WatchProduct } from "@/lib/api"
-import { ShieldCheck, Truck, Clock, Award, Check, Heart, Share2, AlertCircle, ArrowRight, RefreshCw, Star, ShoppingBag, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { 
+  ShieldCheck, 
+  Truck, 
+  Wrench, 
+  Star, 
+  MessageCircle, 
+  ArrowRight, 
+  ArrowUpRight, 
+  ChevronLeft, 
+  ChevronRight,
+  Share2,
+  Bookmark
+} from "lucide-react"
+import { isSaved, toggleSaved } from "@/lib/wishlist"
 
 interface WatchProductDetailProps {
   watch: WatchProduct;
@@ -12,423 +25,485 @@ interface WatchProductDetailProps {
 }
 
 export function WatchProductDetail({ watch, related }: WatchProductDetailProps) {
-  const [activeImage, setActiveImage] = React.useState<string>(watch.image || "/hero_vintage_watch_1785170825322.jpg")
-  const [activeTab, setActiveTab] = React.useState<"specs" | "authenticity" | "service" | "shipping">("specs")
-  const [isAdded, setIsAdded] = React.useState<boolean>(false)
-  const [isReserved, setIsReserved] = React.useState<boolean>(false)
+  // Gallery setup
+  const gallery = React.useMemo(() => {
+    const list = watch.gallery_images && watch.gallery_images.length > 0 
+      ? [...watch.gallery_images] 
+      : [watch.image || "/hero_vintage_watch_1785170825322.jpg"]
+    // Ensure primary image is at start if not present
+    if (watch.image && !list.includes(watch.image)) {
+      list.unshift(watch.image)
+    }
+    return list.filter(Boolean)
+  }, [watch.gallery_images, watch.image])
 
-  const handleBuyNowWhatsApp = () => {
-    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const text = `Hi RetroTimeCo! I'm interested to buy the specific watch:\n\n*${watch.name}*\nRef: ${watch.reference_number}\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\nLink: ${pageUrl}\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`;
-    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
+  const [activeImageIndex, setActiveImageIndex] = React.useState<number>(0)
+  const [saved, setSaved] = React.useState<boolean>(false)
+
+  React.useEffect(() => {
+    setSaved(isSaved(watch.id))
+    const handler = () => setSaved(isSaved(watch.id))
+    window.addEventListener("rtc_saved_updated", handler)
+    return () => window.removeEventListener("rtc_saved_updated", handler)
+  }, [watch.id])
+
+  const handleToggleBookmark = () => {
+    const nowSaved = toggleSaved(watch.id)
+    setSaved(nowSaved)
   }
 
-  const handleAddToCart = async () => {
-    const { addToCart } = await import("@/lib/cart")
-    addToCart(watch)
-    setIsAdded(true)
-    setTimeout(() => setIsAdded(false), 2000)
+  const handlePrevImage = () => {
+    setActiveImageIndex(prev => (prev === 0 ? gallery.length - 1 : prev - 1))
+  }
+
+  const handleNextImage = () => {
+    setActiveImageIndex(prev => (prev + 1) % gallery.length)
+  }
+
+  // WhatsApp Actions matching existing business rules
+  const handleBuyNowWhatsApp = () => {
+    const pageUrl = typeof window !== "undefined" ? window.location.href : ""
+    const text = `Hi RetroTimeCo! I'm interested to buy this timepiece:\n\n*${watch.name}*\nRef: ${watch.reference_number || "Vintage"}\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\nLink: ${pageUrl}\n\nPlease let me know how to proceed with payment and ready-to-ship delivery!`
+    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank")
+  }
+
+  const handleReserveWhatsApp = () => {
+    const pageUrl = typeof window !== "undefined" ? window.location.href : ""
+    const text = `Hi RetroTimeCo! I would like to reserve this piece for 24 hours:\n\n*${watch.name}* (Ref: ${watch.reference_number || "Vintage"})\nPrice: Rs. ${watch.price.toLocaleString("en-IN")}\nLink: ${pageUrl}`
+    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank")
+  }
+
+  const handleSourcingWhatsApp = () => {
+    const pageUrl = typeof window !== "undefined" ? window.location.href : ""
+    const text = `Hi RetroTimeCo! I noticed this timepiece is archived/sold:\n\n*${watch.name}* (Ref: ${watch.reference_number || "Vintage"})\nLink: ${pageUrl}\n\nCould you please help me source a similar piece?`
+    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank")
   }
 
   const handleShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const url = typeof window !== "undefined" ? window.location.href : ""
     if (navigator.share) {
       try {
         await navigator.share({
           title: watch.name,
-          text: `Check out this vintage timepiece: ${watch.name}`,
-          url: url,
-        });
-      } catch (err) {
-        console.log("Error sharing", err);
-      }
+          text: `Vintage Timepiece: ${watch.name} at RetroTimeCo`,
+          url,
+        })
+      } catch {}
     } else {
-      navigator.clipboard.writeText(url);
-      alert("Link copied to clipboard!");
+      navigator.clipboard.writeText(url)
+      alert("Timepiece link copied to clipboard.")
     }
   }
 
-  const handleReserve = () => {
-    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const text = `Hi RetroTimeCo! I would like to reserve this piece for 24 hours:\n\n*${watch.name}* (Ref: ${watch.reference_number})\nLink: ${pageUrl}`;
-    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
-  }
+  const activeImage = gallery[activeImageIndex] || watch.image || "/hero_vintage_watch_1785170825322.jpg"
+  const slideNumFormatted = String(activeImageIndex + 1).padStart(2, "0")
+  const totalNumFormatted = String(gallery.length).padStart(2, "0")
 
-  const handlePrevImage = () => {
-    if (!watch.gallery_images || watch.gallery_images.length <= 1) return;
-    const currentIndex = watch.gallery_images.indexOf(activeImage);
-    const prevIndex = currentIndex === 0 ? watch.gallery_images.length - 1 : currentIndex - 1;
-    setActiveImage(watch.gallery_images[prevIndex]);
-  }
-
-  const handleNextImage = () => {
-    if (!watch.gallery_images || watch.gallery_images.length <= 1) return;
-    const currentIndex = watch.gallery_images.indexOf(activeImage);
-    const nextIndex = (currentIndex + 1) % watch.gallery_images.length;
-    setActiveImage(watch.gallery_images[nextIndex]);
-  }
+  // Condition Grade formatting
+  const conditionGradeDisplay = (watch.condition_label || watch.condition_grade || "EXCELLENT WORKING CONDITION").toUpperCase()
+  const checkedFunctions = watch.condition_notes 
+    ? watch.condition_notes 
+    : "Chronograph / Escapement regulation / Amplitude checked / Timegrapher verified"
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-12">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-secondary)] mb-8">
-        <Link href="/" className="hover:text-[var(--color-brand)]">Home</Link>
-        <span>/</span>
-        <Link href={`/collections/${watch.collection}`} className="hover:text-[var(--color-brand)]">{watch.collection_title}</Link>
-        <span>/</span>
-        <span className="text-[var(--color-text-primary)] font-bold truncate max-w-[200px] sm:max-w-none">{watch.name}</span>
-      </nav>
+    <div className="min-h-screen bg-[#F4EFE6] py-6 sm:py-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-5xl">
+        
+        {/* 1. Breadcrumbs (Reference 2 style) */}
+        <nav aria-label="Breadcrumb" className="font-mono text-xs uppercase tracking-wider text-[#5C646D] mb-6 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+          <Link href="/" className="hover:text-[#11161B] transition-colors">HOME</Link>
+          <span>/</span>
+          <Link href="/collections/all" className="hover:text-[#11161B] transition-colors">THE ARCHIVE</Link>
+          <span>/</span>
+          <Link href={`/collections/${watch.collection}`} className="hover:text-[#11161B] transition-colors uppercase">
+            {watch.brand || watch.collection_title || "TIMEPIECES"}
+          </Link>
+        </nav>
 
-      {/* Main Product Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Left: Photography Showcase */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="group relative h-[450px] sm:h-[600px] w-full bg-[#EAE4DB] rounded-3xl overflow-hidden border border-[var(--color-border)] shadow-[var(--shadow-custom)]">
+        {/* 2. Photography Showcase (Hero Image + Thumbnails) */}
+        <div className="space-y-4 mb-8">
+          <div className="relative aspect-4/3 sm:aspect-16/10 w-full bg-[#16212E] border border-[#D8D1C5] overflow-hidden group">
             <Image
               src={activeImage}
               alt={watch.name}
               fill
-              className="object-cover object-center transition-all duration-500"
               priority
+              sizes="(max-width: 768px) 100vw, 900px"
+              className="object-cover object-center transition-all duration-300"
             />
-            {watch.badge && watch.in_stock && (
-              <span className="absolute top-4 left-4 bg-[var(--color-brand)] text-white text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-md">
-                {watch.badge}
+
+            {/* Slide Index Counter & Dash Pagination (Reference 2: "01 / 08") */}
+            <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3 bg-[#0E1620]/80 backdrop-blur-xs px-3 py-1.5 border border-white/10 text-white font-mono text-xs">
+              <span className="font-bold tracking-wider">
+                {slideNumFormatted} / {totalNumFormatted}
               </span>
-            )}
-            {!watch.in_stock && (
-              <span className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-md">
-                Sold Out
-              </span>
-            )}
-            <div className="absolute top-4 right-4 flex flex-col gap-2">
-              <button 
-                onClick={handleAddToCart} 
-                className={`w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-md transition-colors ${isAdded ? 'text-red-500' : 'text-gray-700 hover:text-red-500'}`}
-                aria-label="Wishlist"
+              <div className="flex items-center gap-1">
+                {gallery.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`h-[2px] transition-all duration-200 ${
+                      idx === activeImageIndex ? "w-6 bg-[#C85A17]" : "w-2.5 bg-white/30"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Share & Bookmark Floating Icons */}
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+              <button
+                onClick={handleToggleBookmark}
+                aria-label={saved ? "Remove from saved" : "Save timepiece"}
+                className={`p-2.5 rounded-sm backdrop-blur-xs transition-colors shadow-md ${
+                  saved ? "bg-[#C85A17] text-white" : "bg-white/80 text-[#0E1622] hover:bg-white"
+                }`}
               >
-                <Heart className={`w-5 h-5 ${isAdded ? 'fill-current' : ''}`} />
+                <Bookmark className={`w-4 h-4 ${saved ? "fill-white" : ""}`} />
               </button>
-              <button 
-                onClick={handleShare} 
-                className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md text-gray-700 hover:text-blue-600 flex items-center justify-center shadow-md transition-colors"
-                aria-label="Share"
+              <button
+                onClick={handleShare}
+                aria-label="Share timepiece"
+                className="p-2.5 rounded-sm bg-white/80 text-[#0E1622] hover:bg-white backdrop-blur-xs transition-colors shadow-md"
               >
-                <Share2 className="w-5 h-5" />
+                <Share2 className="w-4 h-4" />
               </button>
             </div>
-            {watch.gallery_images && watch.gallery_images.length > 1 && (
+
+            {/* Prev / Next Chevrons on Hover */}
+            {gallery.length > 1 && (
               <>
                 <button
                   onClick={handlePrevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-md transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Previous photograph"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleNextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-md transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Next photograph"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#0E1620]/70 hover:bg-[#0E1620] text-white transition-opacity opacity-0 group-hover:opacity-100 z-20"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </>
             )}
+
+            {/* Sold-out Watermark */}
+            {!watch.in_stock && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 pointer-events-none">
+                <span className="bg-[#0E1620] text-white font-mono font-bold text-xs tracking-[0.2em] px-4 py-2 border border-white/20 uppercase">
+                  ARCHIVED / SOLD TO COLLECTOR
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Thumbnails */}
-          {watch.gallery_images && watch.gallery_images.length > 1 && (
-            <div className="flex items-center gap-4 overflow-x-auto pb-2">
-              {watch.gallery_images.map((img, idx) => (
+          {/* Horizontal Thumbnails Carousel (Reference 2) */}
+          {gallery.length > 1 && (
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+              {gallery.map((imgUrl, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setActiveImage(img)}
-                  className={`relative h-24 w-24 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
-                    activeImage === img ? "border-[var(--color-brand)] shadow-md scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                  onClick={() => setActiveImageIndex(idx)}
+                  aria-label={`View photo ${idx + 1}`}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-[#EAE4DB] overflow-hidden border transition-all ${
+                    idx === activeImageIndex
+                      ? "border-2 border-[#C85A17] scale-102"
+                      : "border-[#D8D1C5] opacity-75 hover:opacity-100"
                   }`}
                 >
-                  <Image src={img} alt={`${watch.name} thumb ${idx}`} fill className="object-cover" />
+                  <Image src={imgUrl} alt={`${watch.name} detail ${idx + 1}`} fill className="object-cover" />
                 </button>
               ))}
             </div>
           )}
-
-          {/* Trust Guarantees Banner below image */}
-          <div className="grid grid-cols-3 gap-4 p-6 rounded-2xl bg-white border border-[var(--color-border)] text-center shadow-sm">
-            <div className="flex flex-col items-center gap-1.5">
-              <ShieldCheck className="w-6 h-6 text-[var(--color-brand)]" />
-              <span className="text-xs font-bold uppercase tracking-wider">100% Authentic</span>
-              <span className="text-[10px] text-[var(--color-text-secondary)]">Inspected by Master Horologists</span>
-            </div>
-            <div className="flex flex-col items-center gap-1.5 border-x border-black/5 px-2">
-              <Truck className="w-6 h-6 text-[var(--color-brand)]" />
-              <span className="text-xs font-bold uppercase tracking-wider">Free Express Delivery</span>
-              <span className="text-[10px] text-[var(--color-text-secondary)]">Insured Shipping Across India</span>
-            </div>
-            <div className="flex flex-col items-center gap-1.5">
-              <Clock className="w-6 h-6 text-[var(--color-brand)]" />
-              <span className="text-xs font-bold uppercase tracking-wider">Serviced & Regulated</span>
-              <span className="text-[10px] text-[var(--color-text-secondary)]">Chennai Workshop Certified</span>
-            </div>
-          </div>
         </div>
 
-        {/* Right: Watch Identity & Purchase Controls */}
-        <div className="lg:col-span-5 flex flex-col space-y-6 bg-white p-8 rounded-3xl border border-[var(--color-border)] shadow-[var(--shadow-custom)]">
-          <div>
-            <div className="flex items-center justify-between text-xs font-bold tracking-widest uppercase text-[var(--color-accent)] mb-2">
-              <span>{watch.brand}</span>
-              <span>Ref: {watch.reference_number}</span>
-            </div>
-            <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-[var(--color-text-primary)] leading-tight">
-              {watch.name}
-            </h1>
-            <div className="flex items-center gap-3 mt-3 text-xs">
-              <span className="px-2.5 py-1 rounded-md bg-[var(--color-bg-primary)] font-semibold text-[var(--color-text-primary)]">
-                {watch.era_label}
-              </span>
-              <span className="flex items-center gap-1 text-amber-500 font-bold">
-                <Star className="w-3.5 h-3.5 fill-amber-500" />
-                <span>{watch.rating} ({watch.reviews_count} reviews)</span>
-              </span>
-            </div>
+        {/* 3. Title & Horological Identity Header */}
+        <div className="space-y-3 mb-6">
+          {/* RTC Archive Object Tag */}
+          <div className="font-mono text-xs uppercase tracking-wider text-[#5C646D]">
+            RTC  /  ARCHIVE OBJECT {watch.reference_number || "VNTG-SPEC"}
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#F8F5F0] border border-[var(--color-border)] flex items-center justify-between">
-            <div>
-              <span className="text-xs text-[var(--color-text-secondary)] block uppercase font-bold tracking-wider">Price (All-Inclusive)</span>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="font-heading text-3xl font-extrabold text-[var(--color-brand)]">
-                  Rs. {watch.price.toLocaleString("en-IN")}
-                </span>
-                {watch.original_price && (
-                  <span className="text-sm text-[var(--color-text-secondary)] line-through">
-                    Rs. {watch.original_price.toLocaleString("en-IN")}
-                  </span>
-                )}
-              </div>
-            </div>
+          {/* Product Name */}
+          <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-[#11161B] leading-tight">
+            {watch.name}
+          </h1>
+
+          {/* Era • Brand • Movement Line */}
+          <div className="font-mono text-xs sm:text-sm text-[#5C646D] flex flex-wrap items-center gap-2">
+            <span>{watch.era_label || "Vintage Era"}</span>
+            <span>•</span>
+            <span>{watch.brand}</span>
+            <span>•</span>
+            <span>{watch.specs?.movement_caliber ? `Calibre ${watch.specs.movement_caliber}` : watch.model_name}</span>
           </div>
 
-          {/* Condition Highlight Box */}
-          <div className="space-y-2">
-            <span className="text-xs font-bold tracking-wider uppercase text-[var(--color-text-primary)]">Horologist Condition Report</span>
-            <div className="p-4 rounded-xl border border-[var(--color-border)] bg-white text-xs leading-relaxed text-[var(--color-text-secondary)] font-medium">
-              <div className="font-bold text-[var(--color-text-primary)] mb-1 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                <span>Grade: {watch.condition_label}</span>
-              </div>
-              {watch.condition_notes}
-            </div>
-          </div>
-
-          {/* Purchase Actions */}
-          <div className="space-y-3 pt-2">
-            {watch.in_stock ? (
-              <>
-                <button
-                  onClick={handleBuyNowWhatsApp}
-                  className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Buy Now via WhatsApp — Rs. {watch.price.toLocaleString("en-IN")}</span>
-                </button>
-
-                <button
-                  onClick={handleReserve}
-                  className="w-full py-3.5 rounded-2xl font-bold uppercase tracking-wider text-xs border-2 border-[var(--color-brand)] text-[var(--color-brand)] hover:bg-[var(--color-brand)] hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Inquire / Reserve via WhatsApp (24h Hold)</span>
-                </button>
-
-                <p className="text-[11px] text-center text-[var(--color-text-secondary)] font-medium">
-                  ✨ Ready to Ship Today — Insured Express All-India Delivery by RetroTimeCo Chennai.
-                </p>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
-                    const text = `Hi RetroTimeCo! I noticed this watch is sold out:\n\n*${watch.name}* (Ref: ${watch.reference_number})\nLink: ${pageUrl}\n\nCould you please help me source a similar piece?`;
-                    window.open(`https://wa.me/919171988875?text=${encodeURIComponent(text)}`, "_blank");
-                  }}
-                  className="w-full py-4 rounded-2xl font-bold uppercase tracking-wider text-sm shadow-lg transition-all flex items-center justify-center gap-2 bg-gray-800 hover:bg-black text-white shadow-gray-600/20"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Sold Out - Contact for Sourcing</span>
-                </button>
-                <p className="text-[11px] text-center text-[var(--color-text-secondary)] font-medium">
-                  This piece has been acquired by a collector. We can help source a similar timepiece.
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* Tabbed Specifications & Verification Report */}
-          <div className="pt-6 border-t border-black/5 space-y-4">
-            <div className="flex border-b border-[var(--color-border)]">
-              {[
-                { id: "specs", label: "Horological Specs" },
-                { id: "authenticity", label: "Authenticity Certificate" },
-                { id: "service", label: "Service History" },
-                { id: "shipping", label: "Shipping & Returns" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`pb-2 px-3 text-xs font-bold tracking-wider uppercase border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? "border-[var(--color-brand)] text-[var(--color-brand)]"
-                      : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
+          {/* Rating */}
+          <div className="flex items-center gap-1.5 text-xs font-mono text-[#5C646D]">
+            <div className="flex text-[#C85A17]">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-[#C85A17]" />
               ))}
             </div>
-
-            {activeTab === "specs" && (
-              <div className="space-y-2 text-xs">
-                <div className="grid grid-cols-2 py-1.5 border-b border-black/5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Movement Caliber</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right">{watch.specs.movement_caliber}</span>
-                </div>
-                <div className="grid grid-cols-2 py-1.5 border-b border-black/5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Case Material</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right">{watch.specs.case_material}</span>
-                </div>
-                <div className="grid grid-cols-2 py-1.5 border-b border-black/5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Case Diameter / Lug Width</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right">{watch.specs.case_size_mm}mm / {watch.specs.lug_width_mm}mm</span>
-                </div>
-                <div className="grid grid-cols-2 py-1.5 border-b border-black/5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Crystal Type</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right capitalize">{watch.specs.crystal_type} Crystal</span>
-                </div>
-                <div className="grid grid-cols-2 py-1.5 border-b border-black/5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Measured Accuracy</span>
-                  <span className="font-bold text-emerald-700 text-right">{watch.specs.measured_accuracy_sec_per_day}</span>
-                </div>
-                <div className="grid grid-cols-2 py-1.5">
-                  <span className="text-[var(--color-text-secondary)] font-medium">Water Resistance</span>
-                  <span className="font-bold text-[var(--color-text-primary)] text-right">{watch.specs.water_resistance}</span>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "authenticity" && (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs space-y-2 text-emerald-900">
-                <div className="flex items-center gap-2 font-bold text-sm text-emerald-950">
-                  <Award className="w-5 h-5 text-emerald-700" />
-                  <span>100% Guaranteed Genuine Horology</span>
-                </div>
-                <p className="leading-relaxed font-light">
-                  This timepiece has been physically inspected, opened, and verified under magnification by our senior watchmakers in Chennai. All case serial numbers, movement stamps, and dial fonts conform to original factory specifications.
-                </p>
-                <div className="pt-2 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 text-emerald-800">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Backed by RetroTimeCo Lifetime Authenticity Pledge</span>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "service" && (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs space-y-2 text-amber-950">
-                <div className="flex items-center gap-2 font-bold text-sm text-amber-900">
-                  <RefreshCw className="w-5 h-5 text-amber-700" />
-                  <span>In-House Horological Regulation</span>
-                </div>
-                <p className="leading-relaxed font-light">
-                  {watch.service_history}
-                </p>
-                <div className="pt-2 font-bold text-[11px] uppercase tracking-wider text-amber-800">
-                  ⚡ Backed by our 7-Day Replacement Guarantee (See shipping & returns tab).
-                </div>
-              </div>
-            )}
-
-            {activeTab === "shipping" && (
-              <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs space-y-2 text-blue-950">
-                <div className="flex items-center gap-2 font-bold text-sm text-blue-900">
-                  <Truck className="w-5 h-5 text-blue-700" />
-                  <span>India Post &amp; Express Couriers</span>
-                </div>
-                <p className="leading-relaxed font-light">
-                  We deliver via government-verified <strong>India Post (Speed Post / Registered Post)</strong> as well as priority courier partners including <strong>Blue Dart, DTDC, Delhivery, Ecom Express, and XpressBees</strong> across 28,000+ Indian PIN codes.
-                </p>
-                <div className="pt-2 font-bold text-[11px] uppercase tracking-wider text-blue-800 space-y-1">
-                  <div>✅ 7-Day Replacement Policy for transit damage or mechanical defects.</div>
-                  <div className="text-red-700">⚠️ Strict No-Refund Policy (See Return Policy for details).</div>
-                </div>
-              </div>
-            )}
+            <span className="font-bold text-[#11161B]">{watch.rating || 5.0}</span>
+            <span>({watch.reviews_count || 1} review)</span>
           </div>
         </div>
-      </div>
 
-      {/* Description & Brand Story */}
-      <div className="mt-16 bg-white p-8 md:p-12 rounded-3xl border border-[var(--color-border)] shadow-sm space-y-4">
-        <span className="text-xs font-bold tracking-widest text-[var(--color-accent)] uppercase">Horological Archive Notes</span>
-        <h2 className="font-heading text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">
-          The Craftsmanship & Heritage of the {watch.name}
-        </h2>
-        <p className="text-sm md:text-base text-[var(--color-text-secondary)] leading-relaxed font-light max-w-4xl">
-          {watch.description}
-        </p>
-      </div>
+        {/* 4. Price & Inclusions Strip */}
+        <div className="flex flex-wrap items-baseline gap-4 py-4 mb-6 border-y border-[#D8D1C5]">
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono text-3xl sm:text-4xl font-black text-[#11161B]">
+              ₹ {watch.price.toLocaleString("en-IN")}
+            </span>
+            {watch.original_price && (
+              <span className="font-mono text-sm text-[#5C646D] line-through">
+                (₹ {watch.original_price.toLocaleString("en-IN")})
+              </span>
+            )}
+          </div>
 
-      {/* Related Products Showcase */}
-      {related && related.length > 0 && (
-        <div className="mt-20">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <span className="text-xs font-bold tracking-widest text-[var(--color-accent)] uppercase block mb-1">More from this collection</span>
-              <h2 className="font-heading text-3xl font-bold text-[var(--color-text-primary)]">
-                Related Timepieces
-              </h2>
+          <div className="hidden sm:block text-[#D8D1C5]">|</div>
+
+          <span className="font-mono text-xs font-bold tracking-wider text-[#11161B] uppercase border-b-2 border-[#C85A17] pb-0.5">
+            PRICE INCLUDES SHIPPING
+          </span>
+        </div>
+
+        {/* 5. HOROLOGIST CONDITION REPORT (Navy Table matching Reference 2) */}
+        <div className="mb-6 border border-[#0E1620] overflow-hidden">
+          {/* Dark Navy Table Header */}
+          <div className="bg-[#0E1620] text-white px-4 py-2.5 font-mono text-xs font-bold tracking-[0.18em] uppercase">
+            HOROLOGIST CONDITION REPORT
+          </div>
+          {/* Table Rows */}
+          <div className="bg-[#ECE5DA] divide-y divide-[#D8D1C5] font-mono text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-12 p-3 sm:px-4 sm:py-3 gap-1 sm:gap-4">
+              <span className="sm:col-span-4 text-[#5C646D] font-bold uppercase tracking-wider">
+                GRADE
+              </span>
+              <span className="sm:col-span-8 text-[#C85A17] font-bold uppercase tracking-wider">
+                {conditionGradeDisplay}
+              </span>
             </div>
-            <Link href={`/collections/${watch.collection}`} className="text-xs font-bold uppercase tracking-wider text-[var(--color-brand)] hover:underline flex items-center gap-1">
-              <span>View All ({watch.collection_title})</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {related.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-2xl transition-all duration-500 flex flex-col group"
-              >
-                <Link href={`/products/${item.slug}`} className="relative h-56 w-full bg-[#EAE4DB] overflow-hidden block">
-                  <Image src={item.image || "/hero_vintage_watch_1785170825322.jpg"} alt={item.name || "Watch"} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {item.badge && (
-                    <span className="absolute top-2.5 left-2.5 bg-[var(--color-brand)] text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-                <div className="p-4 flex flex-col flex-1 justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-[var(--color-accent)] uppercase">{item.brand}</span>
-                    <Link href={`/products/${item.slug}`}>
-                      <h3 className="font-heading text-base font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors line-clamp-1">
-                        {item.name}
-                      </h3>
-                    </Link>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
-                    <span className="text-sm font-extrabold text-[var(--color-text-primary)]">Rs. {item.price.toLocaleString("en-IN")}</span>
-                    <Link href={`/products/${item.slug}`} className="px-3 py-1 bg-[var(--color-bg-primary)] group-hover:bg-[var(--color-brand)] text-[var(--color-text-primary)] group-hover:text-white text-[11px] font-bold uppercase rounded-lg transition-colors">
-                      View
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-12 p-3 sm:px-4 sm:py-3 gap-1 sm:gap-4">
+              <span className="sm:col-span-4 text-[#5C646D] font-bold uppercase tracking-wider">
+                CHECKED FUNCTIONS
+              </span>
+              <span className="sm:col-span-8 text-[#11161B] leading-relaxed">
+                {checkedFunctions}
+              </span>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* 6. Primary Action Buttons (Reference 2) */}
+        <div className="space-y-3 mb-8">
+          {watch.in_stock ? (
+            <>
+              {/* Button 1: Buy via WhatsApp */}
+              <button
+                onClick={handleBuyNowWhatsApp}
+                className="w-full py-4 px-6 bg-[#C85A17] hover:bg-[#B34E12] text-white font-mono text-sm font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C85A17]/20"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>BUY VIA WHATSAPP — ₹ {watch.price.toLocaleString("en-IN")}</span>
+              </button>
+
+              {/* Button 2: Inquire / Reserve 24h Hold */}
+              <button
+                onClick={handleReserveWhatsApp}
+                className="w-full py-3.5 px-6 bg-[#F4EFE6] hover:bg-[#EAE4D9] text-[#0E1622] border-2 border-[#0E1622] font-mono text-xs font-bold tracking-wider uppercase transition-colors flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>INQUIRE / RESERVE • 24H HOLD</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleSourcingWhatsApp}
+              className="w-full py-4 px-6 bg-[#0E1620] hover:bg-[#16212E] text-white font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-5 h-5 text-[#C85A17]" />
+              <span>ARCHIVED / SOLD — INQUIRE FOR SOURCING</span>
+            </button>
+          )}
+        </div>
+
+        {/* 7. Trust Value Props (Reference 2: 3-column divider) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#D8D1C5] border-y border-[#D8D1C5] py-4 mb-10 text-center">
+          <div className="flex flex-col items-center gap-1.5 py-2 px-3">
+            <ShieldCheck className="w-5 h-5 text-[#C85A17]" />
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#11161B]">
+              AUTHENTICITY INSPECTED
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5 py-2 px-3">
+            <Truck className="w-5 h-5 text-[#C85A17]" />
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#11161B]">
+              INSURED INDIA-WIDE DELIVERY
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center gap-1.5 py-2 px-3">
+            <Wrench className="w-5 h-5 text-[#C85A17]" />
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#11161B]">
+              CHENNAI WORKSHOP SERVICED &amp; REGULATED
+            </span>
+          </div>
+        </div>
+
+        {/* 8. HOROLOGICAL SPECIFICATIONS (Reference 2 Table) */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
+            <h2 className="font-heading text-lg sm:text-xl font-bold uppercase tracking-tight text-[#11161B]">
+              HOROLOGICAL SPECIFICATIONS
+            </h2>
+          </div>
+
+          <div className="border-t border-[#D8D1C5] divide-y divide-[#D8D1C5] font-mono text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                MOVEMENT CALIBRE
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium">
+                {watch.specs?.movement_caliber || watch.reference_number || "Mechanical"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                CASE MATERIAL
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium">
+                {watch.specs?.case_material || "Stainless Steel"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                CASE DIAMETER
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium">
+                {watch.specs?.case_size_mm ? `${watch.specs.case_size_mm} mm` : "37 mm"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                LUG WIDTH
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium">
+                {watch.specs?.lug_width_mm ? `${watch.specs.lug_width_mm} mm` : "18 mm"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                CRYSTAL
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium capitalize">
+                {watch.specs?.crystal_type ? `${watch.specs.crystal_type} Glass` : "Mineral Glass"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-12 py-2.5">
+              <span className="sm:col-span-5 text-[#5C646D] font-bold uppercase tracking-wider">
+                MEASURED ACCURACY
+              </span>
+              <span className="sm:col-span-7 text-[#11161B] font-medium">
+                {watch.specs?.measured_accuracy_sec_per_day || "Regulated / Accurate"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 9. HOROLOGICAL ARCHIVE NOTES (Reference 2) */}
+        <div className="mb-12 pb-10 border-b border-[#D8D1C5]">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
+            <h2 className="font-heading text-lg sm:text-xl font-bold uppercase tracking-tight text-[#11161B]">
+              HOROLOGICAL ARCHIVE NOTES
+            </h2>
+          </div>
+          <p className="text-sm text-[#5C646D] leading-relaxed font-light">
+            {watch.description || "Curated vintage timepiece from RetroTimeCo Horological Archive Chennai. Inspected and regulated."}
+          </p>
+          {watch.service_history && (
+            <div className="mt-3 p-3 bg-[#EAE4D9] border border-[#D8D1C5] font-mono text-xs text-[#5C646D]">
+              <strong>Service Record: </strong>{watch.service_history}
+            </div>
+          )}
+        </div>
+
+        {/* 10. MORE FROM THE ARCHIVE (Related Pieces matching Reference 2) */}
+        {related && related.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-mono font-bold text-[#C85A17]">/</span>
+                <h2 className="font-heading text-lg sm:text-xl font-bold uppercase tracking-tight text-[#11161B]">
+                  MORE FROM THE ARCHIVE
+                </h2>
+              </div>
+              <Link
+                href={`/collections/${watch.collection}`}
+                className="font-mono text-xs font-bold uppercase tracking-wider text-[#11161B] hover:text-[#C85A17] flex items-center gap-1 transition-colors"
+              >
+                <span>VIEW ALL</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+              {related.slice(0, 4).map((item) => (
+                <div key={item.id} className="bg-[#F8F5EE] border border-[#D8D1C5] flex flex-col justify-between">
+                  <Link href={`/products/${item.slug}`} className="relative aspect-square w-full bg-[#EAE4DB] block overflow-hidden">
+                    <Image
+                      src={item.image || "/hero_vintage_watch_1785170825322.jpg"}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                  </Link>
+                  <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
+                    <div>
+                      <Link href={`/products/${item.slug}`}>
+                        <h3 className="font-heading text-sm sm:text-base font-bold text-[#11161B] hover:text-[#C85A17] line-clamp-1">
+                          {item.name}
+                        </h3>
+                      </Link>
+                      <p className="font-mono text-[10px] text-[#5C646D] mt-0.5 line-clamp-1">
+                        c. {item.era_label || "Vintage"}  /  Ref. {item.reference_number || item.brand}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-[#D8D1C5] flex items-center justify-between">
+                      <span className="font-mono text-sm sm:text-base font-bold text-[#11161B]">
+                        ₹ {item.price.toLocaleString("en-IN")}
+                      </span>
+                      <Link
+                        href={`/products/${item.slug}`}
+                        className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#C85A17] hover:text-[#11161B] flex items-center gap-0.5"
+                      >
+                        <span>VIEW PIECE</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   )
 }

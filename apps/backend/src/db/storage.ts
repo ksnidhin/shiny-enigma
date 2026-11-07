@@ -39,6 +39,7 @@ export interface WatchProduct {
 }
 
 const DATA_FILE = path.join(__dirname, "../../data/live_watches.json")
+const BACKUP_FILE = path.join(__dirname, "../../data/watches.json")
 
 export class WatchStorage {
   private static initFile() {
@@ -46,7 +47,26 @@ export class WatchStorage {
       if (!fs.existsSync(path.dirname(DATA_FILE))) {
         fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true })
       }
+      if (fs.existsSync(BACKUP_FILE)) {
+        try {
+          const backupData = fs.readFileSync(BACKUP_FILE, "utf-8")
+          fs.writeFileSync(DATA_FILE, backupData)
+          return
+        } catch {}
+      }
       fs.writeFileSync(DATA_FILE, JSON.stringify([]))
+    } else {
+      try {
+        const currentData = fs.readFileSync(DATA_FILE, "utf-8")
+        if (currentData.trim() === "[]" || currentData.trim() === "") {
+          if (fs.existsSync(BACKUP_FILE)) {
+            const backupData = fs.readFileSync(BACKUP_FILE, "utf-8")
+            if (backupData.trim() !== "[]" && backupData.trim() !== "") {
+              fs.writeFileSync(DATA_FILE, backupData)
+            }
+          }
+        }
+      } catch {}
     }
   }
 

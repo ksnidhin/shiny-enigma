@@ -1,28 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #F7F3EC;
-  --color-text-primary: #1B1B1B;
-  --color-brand: #173528;
-  --color-brand-hover: #214836;
-  --color-accent: #A67C3D;
-  --color-surface: #EEE7DC;
+  --color-bg-primary: #F4EFE6;
+  --color-bg-secondary: #ECE5DA;
+  --color-text-primary: #11161B;
+  --color-brand: #0E1622;
+  --color-brand-hover: #16212E;
+  --color-accent: #C85A17;
+  --color-accent-hover: #B34E12;
+  --color-surface: #EAE4D9;
   --color-border: #D8D1C5;
-  --color-text-secondary: #6C6A67;
-  --color-success: #4F6F52;
-  --color-sold: #8A8A8A;
-  --color-error: #A94442;
+  --color-border-subtle: #E8E2D8;
+  --color-text-secondary: #5C646D;
+  --color-success: #2E7D32;
+  --color-sold: #757575;
+  --color-error: #C62828;
 
-  --radius-custom: 16px;
-  --shadow-custom: 0 12px 40px rgba(0,0,0,.06);
+  --radius-custom: 8px;
+  --shadow-custom: 0 4px 20px rgba(0,0,0,.05);
 
   --font-heading: var(--font-playfair), serif;
   --font-body: var(--font-outfit), sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 :root {
-  --radius: 16px;
-  --shadow: 0 12px 40px rgba(0,0,0,.06);
+  --radius: 8px;
+  --shadow: 0 4px 20px rgba(0,0,0,.05);
 }
 
 body {
@@ -33,6 +37,6 @@ body {
 
 @layer utilities {
   .focus-ring {
-    @apply focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 outline-none;
+    @apply focus-visible:outline-2 focus-visible:outline-[#0E1622] focus-visible:outline-offset-2 outline-none;
   }
 }

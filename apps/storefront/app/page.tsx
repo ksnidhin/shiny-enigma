@@ -1,211 +1,284 @@
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, ShieldCheck, Truck, Clock, Award, Star, Heart } from "lucide-react"
-import { FeaturedWatchesSection } from "@/components/store/FeaturedWatchesSection"
+import { ShieldCheck, Wrench, Package, ArrowRight, ArrowUpRight } from "lucide-react"
 import { HeroSlider } from "@/components/store/HeroSlider"
+import { WatchCard } from "@/components/store/WatchCard"
 import { DynamicReviews } from "@/components/store/DynamicReviews"
 import { InstagramFeed } from "@/components/store/InstagramFeed"
-import { fetchStats, fetchCollections } from "@/lib/api"
+import { fetchWatches, fetchStats } from "@/lib/api"
 
 async function getHeroSlides() {
   try {
     const res = await fetch("http://localhost:9000/api/hero", { next: { revalidate: 60 } })
     const json = await res.json()
     if (json.success && json.data.length > 0) return json.data
-  } catch (e) {
-    // fallback
-  }
-  return [
-    {
-      id: "default",
-      imageUrl: "/hero_vintage_watch_1785170825322.jpg",
-      title: "The Perfect Destination for Timeless Watches.",
-      subtitle: "India's Premier Watch Haven",
-      linkText: "Explore Vintage",
-      linkUrl: "/collections/all"
-    }
-  ]
+  } catch {}
+  return []
 }
 
-const DEFAULT_COLLECTIONS = [
+const TYPE_CATEGORIES = [
   {
-    id: "casio",
-    title: "Casio Watches",
-    subtitle: "New & Retro Models",
-    image: "/watch_casio_edifice_1785170834699.jpg",
-    href: "/collections/casio",
-    badge: "Official & Authenticated"
-  },
-  {
-    id: "japanese-vintage",
-    title: "Japanese Vintage",
+    title: "Japanese",
     subtitle: "Seiko, Citizen & Orient",
     image: "/watch_seiko_vintage_1785170846705.jpg",
     href: "/collections/japanese-vintage",
-    badge: "Rare Finds"
   },
   {
-    id: "swiss-vintage",
-    title: "Swiss Vintage",
-    subtitle: "Maison Horlogère",
+    title: "Swiss",
+    subtitle: "Omega, Tissot & Vintage Heuers",
     image: "/watch_swiss_vintage_1785170866472.jpg",
     href: "/collections/swiss-vintage",
-    badge: "Collector Grade"
   },
   {
-    id: "hmt-watches",
-    title: "HMT Watches",
-    subtitle: "Heritage Indian Timepieces",
+    title: "Indian",
+    subtitle: "HMT Mechanicals & Janata",
     image: "/hmt_vintage_watch_1785257285844.jpg",
     href: "/collections/hmt-watches",
-    badge: "Bestseller"
   },
   {
-    id: "straps-accessories",
-    title: "Straps & Clasps",
-    subtitle: "Premium Leather & NATO",
-    image: "/watch_accessories_1785170889478.jpg",
-    href: "/collections/straps-accessories",
-    badge: "From Rs. 349"
+    title: "Digital",
+    subtitle: "Casio Retro & World Time",
+    image: "/watch_casio_edifice_1785170834699.jpg",
+    href: "/collections/casio",
   },
-  {
-    id: "storage",
-    title: "Watch Boxes & Storage",
-    subtitle: "Solid Wood & Travel Cases",
-    image: "/watch_accessories_1785170889478.jpg",
-    href: "/collections/storage",
-    badge: "Coming Soon"
-  }
 ]
 
 export default async function Home() {
-  const [statsRes, collectionsRes] = await Promise.all([
-    fetchStats(),
-    fetchCollections()
+  const [slides, watchesRes] = await Promise.all([
+    getHeroSlides(),
+    fetchWatches({ in_stock: true, limit: 8 } as any),
   ])
-  const breakdown = statsRes?.data?.collection_breakdown || {}
-  const slides = await getHeroSlides()
-  
-  const activeCollections = collectionsRes.success && collectionsRes.data.length > 0 
-    ? collectionsRes.data 
-    : DEFAULT_COLLECTIONS
+
+  const latestWatches = watchesRes.success && watchesRes.data.length > 0 
+    ? watchesRes.data.slice(0, 8) 
+    : []
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#F4EFE6]">
+      {/* 1. Hero Showcase Slider */}
       <HeroSlider initialSlides={slides} />
 
-
-      {/* Trust Badges */}
-      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)] py-12 md:py-16">
+      {/* 2. Trust & Standards Strip (Reference 1 3-column divided layout) */}
+      <section className="border-b border-[#D8D1C5] bg-[#F4EFE6] py-5">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6 text-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold text-sm md:text-base">100% Authenticity Guaranteed</h3>
-              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Verified by expert watchmakers</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#D8D1C5] text-center">
+            
+            <div className="flex items-center justify-center gap-3 py-3 md:py-1 px-4">
+              <ShieldCheck className="w-5 h-5 text-[#C85A17] shrink-0" />
+              <span className="font-mono text-xs font-bold tracking-wider uppercase text-[#11161B]">
+                AUTHENTICITY CHECKED
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Truck className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold text-sm md:text-base">Express Shipping Across India</h3>
-              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Free on orders above Rs. 499</p>
+
+            <div className="flex items-center justify-center gap-3 py-3 md:py-1 px-4">
+              <Wrench className="w-5 h-5 text-[#C85A17] shrink-0" />
+              <span className="font-mono text-xs font-bold tracking-wider uppercase text-[#11161B]">
+                SERVICED BEFORE DISPATCH
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Clock className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold text-sm md:text-base">Fully Serviced &amp; Restored</h3>
-              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Vintage pieces regulated for accuracy</p>
+
+            <div className="flex items-center justify-center gap-3 py-3 md:py-1 px-4">
+              <Package className="w-5 h-5 text-[#C85A17] shrink-0" />
+              <span className="font-mono text-xs font-bold tracking-wider uppercase text-[#11161B]">
+                TRACKED INDIA-WIDE
+              </span>
             </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-brand)]/10 flex items-center justify-center text-[var(--color-brand)]">
-                <Award className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold text-sm md:text-base">Curated Horological Archive</h3>
-              <p className="text-xs md:text-sm text-[var(--color-text-secondary)]">Handpicked for collectors &amp; enthusiasts</p>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Browse By Type Section (Reference 1) */}
+      <section className="py-12 md:py-16 border-b border-[#D8D1C5]">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight uppercase text-[#11161B]">
+              BROWSE BY TYPE
+            </h2>
+            <Link 
+              href="/collections/all"
+              className="font-mono text-xs font-bold uppercase tracking-wider text-[#11161B] hover:text-[#C85A17] flex items-center gap-1 transition-colors"
+            >
+              <span>VIEW ALL</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* 4 Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {TYPE_CATEGORIES.map((cat) => (
+              <Link
+                key={cat.title}
+                href={cat.href}
+                className="group relative aspect-4/3 sm:aspect-square overflow-hidden bg-[#16212E] border border-[#D8D1C5] hover:border-[#0E1622] transition-all"
+              >
+                <Image
+                  src={cat.image}
+                  alt={cat.title}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <h3 className="font-heading text-base sm:text-lg font-bold text-white group-hover:text-[#C85A17] transition-colors leading-tight">
+                    {cat.title}
+                  </h3>
+                  <span className="font-mono text-[10px] text-gray-300 block mt-0.5 truncate">
+                    {cat.subtitle}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Latest Drops / JUST ENTERED THE ARCHIVE (Reference 1) */}
+      <section className="py-12 md:py-16 border-b border-[#D8D1C5]">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          {/* Section Header with Burnt Orange Slash */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <span className="text-xl sm:text-2xl font-bold font-mono text-[#C85A17]">/</span>
+              <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight uppercase text-[#11161B]">
+                JUST ENTERED THE ARCHIVE
+              </h2>
+            </div>
+            <Link 
+              href="/collections/all"
+              className="font-mono text-xs font-bold uppercase tracking-wider text-[#11161B] hover:text-[#C85A17] flex items-center gap-1 transition-colors"
+            >
+              <span>VIEW ALL</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Product Grid (2 columns on mobile, 4 columns on desktop) */}
+          {latestWatches.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+              {latestWatches.map((watch) => (
+                <WatchCard key={watch.id} watch={watch} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-[#F8F5EE] border border-[#D8D1C5] p-8">
+              <p className="font-mono text-sm text-[#5C646D]">No newly added archive timepieces found.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 5. Workshop Feature Split Banner ("BEFORE IT REACHES YOU.") */}
+      <section className="border-b border-[#D8D1C5] bg-[#0E1620] text-white">
+        <div className="grid grid-cols-1 md:grid-cols-12 min-h-[360px]">
+          {/* Left: Movement Macro Photography */}
+          <div className="md:col-span-6 relative h-64 md:h-auto min-h-[260px] bg-[#16212E] overflow-hidden">
+            <Image
+              src="/hero_vintage_watch_1785170825322.jpg"
+              alt="Horological regulation and movement inspection"
+              fill
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0E1620]/60 hidden md:block" />
+          </div>
+
+          {/* Right: Inspection Standards */}
+          <div className="md:col-span-6 p-8 md:p-14 lg:p-16 flex flex-col justify-center space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-[2px] bg-[#C85A17]" />
+              <span className="font-mono text-xs font-bold tracking-[0.2em] text-[#C85A17] uppercase">
+                CHENNAI HOROLOGICAL WORKSHOP
+              </span>
+            </div>
+
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight uppercase leading-tight">
+              BEFORE IT REACHES YOU<span className="text-[#C85A17]">.</span>
+            </h2>
+
+            <p className="font-mono text-sm sm:text-base text-gray-300 font-medium tracking-wide">
+              Inspect. Regulate. Photograph. Dispatch.
+            </p>
+
+            <p className="text-xs sm:text-sm text-gray-400 font-light leading-relaxed max-w-lg">
+              Every mechanical and quartz vintage piece is physically opened, demagnetized, timed on a digital timegrapher, and checked for authentic parts before being certified.
+            </p>
+
+            <div className="pt-2">
+              <Link
+                href="/pages/authenticity"
+                className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#C85A17] hover:text-white transition-colors"
+              >
+                <span>SEE HOW WE CHECK EACH WATCH</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Curated Categories Grid */}
-      <section className="py-24 container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center mb-16">
-          <span className="text-xs font-bold tracking-widest text-[var(--color-accent)] uppercase mb-3">Curated Worlds</span>
-          <h2 className="font-heading text-4xl sm:text-5xl font-bold text-[var(--color-text-primary)]">
-            Explore Our Collections
-          </h2>
-          <div className="w-12 h-0.5 bg-[var(--color-accent)] mt-6" />
-        </div>
+      {/* 6. Horological Archive Blueprint ("More Than a Store.") */}
+      <section className="py-12 md:py-16 border-b border-[#D8D1C5] bg-[#F4EFE6]">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            
+            {/* Left: Archive Technical Blueprint Card */}
+            <div className="md:col-span-5 bg-[#EAE4D9] border border-[#D8D1C5] p-6 relative">
+              <div className="border border-dashed border-[#5C646D]/40 p-6 flex flex-col justify-between h-56">
+                <div>
+                  <span className="font-mono text-xs font-bold tracking-[0.2em] uppercase text-[#11161B] block">
+                    THE ARCHIVE
+                  </span>
+                  <div className="font-mono text-[11px] text-[#5C646D] mt-2 space-y-0.5">
+                    <p>Ref. 7009 / Calibre 7009A</p>
+                    <p>Automatic 17 Jewels</p>
+                    <p>c. 1970s Golden Era</p>
+                  </div>
+                </div>
+                <div className="font-mono text-[10px] text-[#C85A17] font-bold tracking-wider uppercase">
+                  VERIFIED INDEPENDENT HOROLOGY
+                </div>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {activeCollections.map((col, idx) => {
-            const availableCount = breakdown[col.id] || 0
-            return (
-              <Link 
-                key={col.href}
-                href={col.href}
-                className={`group relative rounded-2xl overflow-hidden border border-[var(--color-border)] bg-white shadow-[var(--shadow-custom)] hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col ${
-                  idx === 0 || idx === 1 ? "md:col-span-1 lg:col-span-1" : ""
-                }`}
-              >
-                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-[#EBE5DC]">
-                  <Image 
-                    src={col.image} 
-                    alt={col.title} 
-                    fill 
-                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    unoptimized
-                  />
-                  {col.badge && (
-                    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-[var(--color-brand)] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-                      {col.badge}
-                    </div>
-                  )}
+            {/* Right: Story & Mission */}
+            <div className="md:col-span-7 flex flex-col justify-center space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-[3px] h-14 bg-[#D8D1C5] shrink-0" />
+                <div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#11161B]">
+                    More Than a Store<span className="text-[#C85A17]">.</span>
+                  </h2>
+                  <p className="text-sm text-[#5C646D] leading-relaxed mt-2 max-w-xl">
+                    A curated archive of vintage timepieces for collectors, enthusiasts and new explorers. We believe in preserving mechanical heritage, giving storied watches second lives on appreciative wrists.
+                  </p>
                 </div>
-                
-                <div className="p-6 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
-                  <div>
-                    <h3 className="font-heading font-bold text-[var(--color-text-primary)] text-2xl mb-1 group-hover:text-[var(--color-brand)] transition-colors">
-                      {col.title}
-                    </h3>
-                    <p className="text-sm text-[var(--color-text-secondary)] font-medium">
-                      {col.subtitle}
-                    </p>
-                  </div>
-                  
-                  <div className="mt-8 flex items-center justify-between text-xs font-bold tracking-wider text-[var(--color-brand)] uppercase pt-4 border-t border-black/5">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[var(--color-brand)] font-bold text-sm hover:text-[var(--color-accent)] transition-colors">Buy Now</span>
-                      <span className="text-[10px] text-[var(--color-text-secondary)]">
-                        {availableCount > 0 ? `${availableCount} pieces available` : "Out of stock"}
-                      </span>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-bg-primary)] flex items-center justify-center group-hover:bg-[var(--color-brand)] group-hover:text-white transition-all shadow-sm">
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+              </div>
+
+              <div className="pt-2 pl-5">
+                <Link
+                  href="/policies/contact"
+                  className="font-mono text-xs font-bold uppercase tracking-wider text-[#C85A17] hover:text-[#11161B] inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <span>ABOUT RETROTIMECO</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* Dynamic Featured Watches Section */}
-      {/* <FeaturedWatchesSection /> - Disabled for Waitlist Phase */}
-
-
-
-      {/* Dynamic Community Reviews Section */}
-      <section className="py-20 bg-[var(--color-bg-primary)]">
+      {/* 7. Community Reviews */}
+      <section className="py-14 md:py-18 bg-[#F4EFE6] border-b border-[#D8D1C5]">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-[var(--color-brand)] font-bold tracking-widest uppercase text-xs">Community Voices</span>
-            <h2 className="font-heading text-3xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mt-3">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <span className="font-mono text-[11px] font-bold tracking-[0.2em] text-[#C85A17] uppercase block mb-2">
+              COMMUNITY VOICES
+            </span>
+            <h2 className="font-heading text-2xl sm:text-4xl font-bold text-[#11161B]">
               Trusted by Collectors
             </h2>
           </div>
@@ -213,8 +286,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Instagram Integration */}
+      {/* 8. Instagram Showcase */}
       <InstagramFeed />
     </div>
-  );
+  )
 }

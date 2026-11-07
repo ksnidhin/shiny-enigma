@@ -15,6 +15,11 @@ export const getCartItems = (): CartItem[] => {
   }
 };
 
+export const getCartCount = (): number => {
+  const items = getCartItems();
+  return items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+};
+
 export const addToCart = (watch: WatchProduct) => {
   if (typeof window === "undefined") return;
   const items = getCartItems();
@@ -27,6 +32,7 @@ export const addToCart = (watch: WatchProduct) => {
   }
   
   localStorage.setItem("rtc_cart", JSON.stringify(items));
+  window.dispatchEvent(new Event("rtc_cart_updated"));
 };
 
 export const removeFromCart = (watchId: string) => {
@@ -34,6 +40,7 @@ export const removeFromCart = (watchId: string) => {
   const items = getCartItems();
   const newItems = items.filter(item => item.watch.id !== watchId);
   localStorage.setItem("rtc_cart", JSON.stringify(newItems));
+  window.dispatchEvent(new Event("rtc_cart_updated"));
 };
 
 export const updateCartQuantity = (watchId: string, quantity: number) => {
@@ -48,10 +55,12 @@ export const updateCartQuantity = (watchId: string, quantity: number) => {
       items[existingIndex].quantity = quantity;
     }
     localStorage.setItem("rtc_cart", JSON.stringify(items));
+    window.dispatchEvent(new Event("rtc_cart_updated"));
   }
 };
 
 export const clearCart = () => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("rtc_cart");
+  window.dispatchEvent(new Event("rtc_cart_updated"));
 };

@@ -1,12 +1,13 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import { WatchProduct } from "@/lib/api"
-import { Filter, SlidersHorizontal, ArrowUpDown, Check, X, ShieldCheck, Heart, ShoppingBag } from "lucide-react"
+import { WatchCard } from "./WatchCard"
+import { Filter, SlidersHorizontal, ArrowUpDown, X, ShieldCheck } from "lucide-react"
+import { getSavedIds } from "@/lib/wishlist"
 
-interface WatchCatalogGridProps {
+export interface WatchCatalogGridProps {
   initialWatches: WatchProduct[];
   collectionSlug: string;
   availableBrands: string[];
@@ -14,25 +15,42 @@ interface WatchCatalogGridProps {
   collectionSubtitle?: string;
 }
 
-export function WatchCatalogGrid({
+function WatchCatalogGridContent({
   initialWatches,
   collectionSlug,
   availableBrands,
   collectionTitle,
   collectionSubtitle,
 }: WatchCatalogGridProps) {
+  const searchParams = useSearchParams()
+  const filterQuery = searchParams.get("filter")
+
   const [watches, setWatches] = React.useState<WatchProduct[]>(initialWatches)
-  const [addedIds, setAddedIds] = React.useState<Set<string>>(new Set())
   const [selectedBrand, setSelectedBrand] = React.useState<string>("all")
   const [selectedCondition, setSelectedCondition] = React.useState<string>("all")
   const [priceRange, setPriceRange] = React.useState<string>("all")
+  const [inStockOnly, setInStockOnly] = React.useState<boolean>(false)
+  const [showSavedOnly, setShowSavedOnly] = React.useState<boolean>(filterQuery === "saved")
   const [sortBy, setSortBy] = React.useState<string>("featured")
   const [searchQuery, setSearchQuery] = React.useState<string>("")
   const [showFiltersMobile, setShowFiltersMobile] = React.useState<boolean>(false)
 
+  // Sync saved query param
+  React.useEffect(() => {
+    if (filterQuery === "saved") {
+      setShowSavedOnly(true)
+    }
+  }, [filterQuery])
+
   // Filter & Sort computation
   React.useEffect(() => {
     let result = [...initialWatches]
+
+    // Saved pieces filter
+    if (showSavedOnly) {
+      const savedIds = getSavedIds()
+      result = result.filter(w => savedIds.includes(w.id))
+    }
 
     // Brand filter
     if (selectedBrand !== "all") {
@@ -44,15 +62,20 @@ export function WatchCatalogGrid({
       result = result.filter(w => (w.condition_grade || "").toLowerCase() === selectedCondition.toLowerCase())
     }
 
+    // Stock filter
+    if (inStockOnly) {
+      result = result.filter(w => w.in_stock)
+    }
+
     // Price filter
     if (priceRange === "under_5k") {
       result = result.filter(w => w.price <= 5000)
-    } else if (priceRange === "5k_25k") {
-      result = result.filter(w => w.price > 5000 && w.price <= 25000)
-    } else if (priceRange === "25k_50k") {
-      result = result.filter(w => w.price > 25000 && w.price <= 50000)
-    } else if (priceRange === "above_50k") {
-      result = result.filter(w => w.price > 50000)
+    } else if (priceRange === "5k_15k") {
+      result = result.filter(w => w.price > 5000 && w.price <= 15000)
+    } else if (priceRange === "15k_35k") {
+      result = result.filter(w => w.price > 15000 && w.price <= 35000)
+    } else if (priceRange === "above_35k") {
+      result = result.filter(w => w.price > 35000)
     }
 
     // Keyword search
@@ -62,6 +85,7 @@ export function WatchCatalogGrid({
         w.name.toLowerCase().includes(q) ||
         w.brand.toLowerCase().includes(q) ||
         w.model_name.toLowerCase().includes(q) ||
+        w.reference_number.toLowerCase().includes(q) ||
         w.description.toLowerCase().includes(q)
       )
     }
@@ -74,16 +98,27 @@ export function WatchCatalogGrid({
     } else if (sortBy === "newest") {
       result.sort((a, b) => b.id.localeCompare(a.id))
     } else if (sortBy === "featured") {
-      result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+      result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
     }
 
     setWatches(result)
-  }, [selectedBrand, selectedCondition, priceRange, sortBy, searchQuery, initialWatches])
+  }, [
+    selectedBrand,
+    selectedCondition,
+    priceRange,
+    inStockOnly,
+    showSavedOnly,
+    sortBy,
+    searchQuery,
+    initialWatches
+  ])
 
   const clearFilters = () => {
     setSelectedBrand("all")
     setSelectedCondition("all")
     setPriceRange("all")
+    setInStockOnly(false)
+    setShowSavedOnly(false)
     setSearchQuery("")
     setSortBy("featured")
   }
@@ -91,115 +126,150 @@ export function WatchCatalogGrid({
   const activeFiltersCount = 
     (selectedBrand !== "all" ? 1 : 0) + 
     (selectedCondition !== "all" ? 1 : 0) + 
-    (priceRange !== "all" ? 1 : 0) +
+    (priceRange !== "all" ? 1 : 0) + 
+    (inStockOnly ? 1 : 0) +
+    (showSavedOnly ? 1 : 0) +
     (searchQuery !== "" ? 1 : 0)
 
   return (
-    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-10">
-      {/* Collection Header */}
-      <div className="py-8 md:py-12 mb-10 border-b border-[var(--color-border)] text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-surface)] text-[var(--color-accent)] text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-6">
-          <ShieldCheck className="w-4 h-4" />
-          <span>100% Verified Horology</span>
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12">
+      
+      {/* 1. Archive Header */}
+      <div className="py-6 sm:py-10 mb-8 border-b border-[#D8D1C5]">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-2xl font-mono font-bold text-[#C85A17]">/</span>
+          <h1 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-[#11161B]">
+            {showSavedOnly ? "SAVED TIMEPIECES" : collectionTitle}
+          </h1>
         </div>
-        <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-text-primary)] mb-6">
-          {collectionTitle}
-        </h1>
-        <p className="text-[var(--color-text-secondary)] text-sm md:text-base leading-relaxed font-light">
-          {collectionSubtitle || "Explore our authenticated inventory. Every watch undergoes extensive mechanical regulation and verification by expert horologists."}
+        <p className="font-mono text-xs sm:text-sm text-[#5C646D] max-w-2xl leading-relaxed">
+          {showSavedOnly 
+            ? "Your curated collection of bookmarked horological references." 
+            : collectionSubtitle || "Explore our authenticated archive. Physically inspected, movement regulated, and packaged in Chennai."}
         </p>
       </div>
 
-      {/* Toolbar Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--color-border)] mb-8">
+      {/* 2. Control Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-6 border-b border-[#D8D1C5] mb-8">
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Mobile Filter Button */}
           <button
             onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-            className="md:hidden flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[var(--color-border)] text-xs font-bold uppercase tracking-wider shadow-sm"
+            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-[#F8F5EE] border border-[#D8D1C5] text-xs font-mono font-bold uppercase tracking-wider text-[#11161B]"
           >
-            <Filter className="w-4 h-4 text-[var(--color-brand)]" />
-            <span>Filters ({activeFiltersCount})</span>
+            <Filter className="w-3.5 h-3.5 text-[#C85A17]" />
+            <span>FILTERS {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}</span>
           </button>
 
-          <span className="text-xs font-bold tracking-wider uppercase text-[var(--color-text-secondary)]">
-            Showing <span className="text-[var(--color-text-primary)] font-extrabold">{watches.length}</span> timepieces
+          <span className="font-mono text-xs text-[#5C646D] uppercase tracking-wider">
+            SHOWING <strong className="text-[#11161B]">{watches.length}</strong> PIECES
           </span>
 
           {activeFiltersCount > 0 && (
             <button
               onClick={clearFilters}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 text-xs font-mono font-bold uppercase tracking-wider transition-colors border border-red-200"
             >
-              <X className="w-3.5 h-3.5" />
-              <span>Reset Filters</span>
+              <X className="w-3 h-3" />
+              <span>CLEAR FILTERS</span>
             </button>
           )}
         </div>
 
-        {/* Search and Sort */}
-        <div className="flex items-center gap-3">
+        {/* Search Input & Sort Dropdown */}
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           <input
             type="text"
-            placeholder="Search watches or calibers..."
+            placeholder="Search reference or caliber..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-[var(--color-border)] bg-white text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] w-full md:w-64"
+            className="px-3.5 py-2 bg-[#F8F5EE] border border-[#D8D1C5] text-xs font-mono text-[#11161B] placeholder-[#5C646D] focus:outline-none focus:border-[#0E1620] w-full sm:w-56"
           />
 
-          <div className="relative flex items-center">
+          <div className="relative flex items-center shrink-0">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-[var(--color-border)] bg-white text-xs font-semibold text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] cursor-pointer"
+              aria-label="Sort timepieces"
+              className="appearance-none pl-3 pr-8 py-2 bg-[#F8F5EE] border border-[#D8D1C5] text-xs font-mono font-bold uppercase tracking-wider text-[#11161B] focus:outline-none focus:border-[#0E1620] cursor-pointer"
             >
-              <option value="featured">Sort by: Featured</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="newest">Newest First</option>
+              <option value="featured">SORT: FEATURED</option>
+              <option value="price_asc">PRICE: LOW TO HIGH</option>
+              <option value="price_desc">PRICE: HIGH TO LOW</option>
+              <option value="newest">NEWEST IN ARCHIVE</option>
             </select>
-            <ArrowUpDown className="w-3.5 h-3.5 text-[var(--color-text-secondary)] absolute right-3 pointer-events-none" />
+            <ArrowUpDown className="w-3 h-3 text-[#5C646D] absolute right-2.5 pointer-events-none" />
           </div>
         </div>
       </div>
 
-      {/* Main Grid + Sidebar Layout */}
+      {/* 3. Main Catalog Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Desktop Sidebar Filters */}
-        <div className={`lg:block ${showFiltersMobile ? "block" : "hidden"} space-y-8 bg-white p-6 rounded-2xl border border-[var(--color-border)] shadow-sm h-fit`}>
-          <div className="flex items-center justify-between pb-4 border-b border-black/5">
-            <span className="font-heading text-xl font-bold flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-[var(--color-brand)]" />
-              <span>Filter Catalog</span>
+        
+        {/* Sidebar Filters */}
+        <div className={`lg:block ${showFiltersMobile ? "block" : "hidden"} space-y-6 bg-[#F8F5EE] p-5 border border-[#D8D1C5] h-fit`}>
+          <div className="flex items-center justify-between pb-3 border-b border-[#D8D1C5]">
+            <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#11161B] flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-[#C85A17]" />
+              <span>FILTER ARCHIVE</span>
             </span>
             {activeFiltersCount > 0 && (
-              <button onClick={clearFilters} className="text-sm text-[var(--color-accent)] font-semibold hover:underline">
-                Clear All
+              <button onClick={clearFilters} className="font-mono text-[10px] text-[#C85A17] font-bold uppercase hover:underline">
+                RESET
               </button>
             )}
           </div>
 
+          {/* Quick Toggle: In-Stock Only */}
+          <div className="pt-2">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono font-bold uppercase tracking-wider text-[#11161B]">
+              <input
+                type="checkbox"
+                checked={inStockOnly}
+                onChange={(e) => setInStockOnly(e.target.checked)}
+                className="w-4 h-4 accent-[#C85A17] cursor-pointer"
+              />
+              <span>IN-STOCK ONLY</span>
+            </label>
+          </div>
+
+          {/* Quick Toggle: Saved Only */}
+          <div>
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono font-bold uppercase tracking-wider text-[#11161B]">
+              <input
+                type="checkbox"
+                checked={showSavedOnly}
+                onChange={(e) => setShowSavedOnly(e.target.checked)}
+                className="w-4 h-4 accent-[#C85A17] cursor-pointer"
+              />
+              <span>SAVED BOOKMARKS</span>
+            </label>
+          </div>
+
           {/* Brand Filter */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Brand</h3>
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-3 pt-4 border-t border-[#D8D1C5]">
+            <h3 className="font-mono text-[11px] font-bold tracking-widest uppercase text-[#5C646D]">
+              MANUFACTURER / BRAND
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => setSelectedBrand("all")}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                className={`px-2.5 py-1 font-mono text-[11px] tracking-wider uppercase transition-colors ${
                   selectedBrand === "all"
-                    ? "bg-[var(--color-brand)] text-white font-bold shadow-sm"
-                    : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+                    ? "bg-[#0E1620] text-white font-bold"
+                    : "bg-[#EAE4D9] text-[#11161B] hover:bg-[#D8D1C5]"
                 }`}
               >
-                All Brands
+                ALL
               </button>
               {availableBrands.map(brand => (
                 <button
                   key={brand}
                   onClick={() => setSelectedBrand(brand)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  className={`px-2.5 py-1 font-mono text-[11px] tracking-wider uppercase transition-colors ${
                     selectedBrand.toLowerCase() === brand.toLowerCase()
-                      ? "bg-[var(--color-brand)] text-white font-bold shadow-sm"
-                      : "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+                      ? "bg-[#0E1620] text-white font-bold"
+                      : "bg-[#EAE4D9] text-[#11161B] hover:bg-[#D8D1C5]"
                   }`}
                 >
                   {brand}
@@ -209,23 +279,25 @@ export function WatchCatalogGrid({
           </div>
 
           {/* Price Range Filter */}
-          <div className="space-y-4 pt-6 border-t border-black/5">
-            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Price Range</h3>
-            <div className="flex flex-col space-y-3 text-sm font-medium text-[var(--color-text-primary)]">
+          <div className="space-y-2.5 pt-4 border-t border-[#D8D1C5]">
+            <h3 className="font-mono text-[11px] font-bold tracking-widest uppercase text-[#5C646D]">
+              PRICE BAND
+            </h3>
+            <div className="flex flex-col space-y-2 text-xs font-mono text-[#11161B]">
               {[
-                { label: "All Prices", value: "all" },
-                { label: "Under Rs. 5,000", value: "under_5k" },
-                { label: "Rs. 5,000 - Rs. 25,000", value: "5k_25k" },
-                { label: "Rs. 25,000 - Rs. 50,000", value: "25k_50k" },
-                { label: "Above Rs. 50,000", value: "above_50k" },
+                { label: "ALL PRICES", value: "all" },
+                { label: "UNDER ₹ 5,000", value: "under_5k" },
+                { label: "₹ 5,000 – ₹ 15,000", value: "5k_15k" },
+                { label: "₹ 15,000 – ₹ 35,000", value: "15k_35k" },
+                { label: "ABOVE ₹ 35,000", value: "above_35k" },
               ].map((opt) => (
-                <label key={opt.value} className="flex items-center gap-3 cursor-pointer py-1 hover:text-[var(--color-accent)] transition-colors">
+                <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer py-0.5 hover:text-[#C85A17] transition-colors">
                   <input
                     type="radio"
                     name="priceRange"
                     checked={priceRange === opt.value}
                     onChange={() => setPriceRange(opt.value)}
-                    className="accent-[var(--color-brand)] w-4 h-4 cursor-pointer"
+                    className="accent-[#C85A17] w-3.5 h-3.5 cursor-pointer"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -233,24 +305,26 @@ export function WatchCatalogGrid({
             </div>
           </div>
 
-          {/* Condition Grade Filter */}
-          <div className="space-y-4 pt-6 border-t border-black/5">
-            <h3 className="text-xs font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Condition</h3>
-            <div className="flex flex-col space-y-3 text-sm font-medium text-[var(--color-text-primary)]">
+          {/* Condition Filter */}
+          <div className="space-y-2.5 pt-4 border-t border-[#D8D1C5]">
+            <h3 className="font-mono text-[11px] font-bold tracking-widest uppercase text-[#5C646D]">
+              HOROLOGIST GRADE
+            </h3>
+            <div className="flex flex-col space-y-2 text-xs font-mono text-[#11161B]">
               {[
-                { label: "All Conditions", value: "all" },
-                { label: "Brand New / Sealed", value: "new" },
-                { label: "Mint Restored", value: "mint" },
-                { label: "Excellent (Original)", value: "excellent" },
-                { label: "Very Good (Patina)", value: "very_good" },
+                { label: "ALL GRADES", value: "all" },
+                { label: "MINT RESTORED", value: "mint" },
+                { label: "EXCELLENT", value: "excellent" },
+                { label: "VERY GOOD (PATINA)", value: "very_good" },
+                { label: "BRAND NEW / SEALED", value: "new" },
               ].map((opt) => (
-                <label key={opt.value} className="flex items-center gap-3 cursor-pointer py-1 hover:text-[var(--color-accent)] transition-colors">
+                <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer py-0.5 hover:text-[#C85A17] transition-colors">
                   <input
                     type="radio"
                     name="conditionGrade"
                     checked={selectedCondition === opt.value}
                     onChange={() => setSelectedCondition(opt.value)}
-                    className="accent-[var(--color-brand)] w-4 h-4 cursor-pointer"
+                    className="accent-[#C85A17] w-3.5 h-3.5 cursor-pointer"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -262,110 +336,41 @@ export function WatchCatalogGrid({
         {/* Product Cards Grid */}
         <div className="lg:col-span-3">
           {watches.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[var(--color-border)] p-12 text-center flex flex-col items-center justify-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-                <SlidersHorizontal className="w-8 h-8" />
-              </div>
-              <h3 className="font-heading text-2xl font-bold">No timepieces match your criteria</h3>
-              <p className="text-xs text-[var(--color-text-secondary)] max-w-sm">
-                Try clearing your search keyword or relaxing your filter selections to see our curated archive.
+            <div className="bg-[#F8F5EE] border border-[#D8D1C5] p-12 text-center flex flex-col items-center justify-center space-y-4">
+              <span className="font-mono text-2xl text-[#C85A17]">/</span>
+              <h3 className="font-heading text-2xl font-bold text-[#11161B]">No timepieces match criteria</h3>
+              <p className="font-mono text-xs text-[#5C646D] max-w-sm">
+                Try clearing your search query or relaxing your filter selections to see the available horological archive.
               </p>
               <button
                 onClick={clearFilters}
-                className="px-6 py-2.5 bg-[var(--color-brand)] text-white rounded-xl text-xs font-semibold uppercase tracking-wider"
+                className="px-6 py-2.5 bg-[#0E1620] hover:bg-[#16212E] text-white text-xs font-mono font-bold uppercase tracking-wider transition-colors"
               >
-                Reset All Filters
+                RESET ALL FILTERS
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
               {watches.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-[var(--shadow-custom)] hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col group relative"
-                >
-                  <Link href={`/products/${product.slug}`} className="relative h-64 w-full bg-[#EAE4DB] overflow-hidden block">
-                    <Image
-                      src={product.image || "/hero_vintage_watch_1785170825322.jpg"}
-                      alt={product.name || "Watch"}
-                      fill
-                      className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                    {product.badge && product.in_stock && (
-                      <span className="absolute top-3 left-3 bg-[var(--color-brand)] text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                        {product.badge}
-                      </span>
-                    )}
-                    {!product.in_stock && (
-                      <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                        Sold Out
-                      </span>
-                    )}
-                    <div className="absolute top-3 right-3 flex flex-col gap-1.5">
-                      <button 
-                        onClick={async (e) => { 
-                          e.preventDefault(); 
-                          const { addToCart } = await import("@/lib/cart");
-                          addToCart(product);
-                          setAddedIds(prev => new Set(prev).add(product.id));
-                          setTimeout(() => {
-                            setAddedIds(prev => {
-                              const next = new Set(prev);
-                              next.delete(product.id);
-                              return next;
-                            });
-                          }, 2000);
-                        }}
-                        className={`w-8 h-8 rounded-full bg-white/90 flex items-center justify-center transition-colors shadow-sm ${addedIds.has(product.id) ? 'text-red-500' : 'text-gray-700 hover:text-red-500'}`}
-                        aria-label="Wishlist"
-                      >
-                        <Heart className={`w-4 h-4 ${addedIds.has(product.id) ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
-                  </Link>
-
-                  <div className="p-5 flex flex-col flex-1 justify-between bg-white group-hover:bg-[#FCFAFA] transition-colors">
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--color-accent)] uppercase tracking-wider mb-1">
-                        <span>{product.brand}</span>
-                        <span>{product.era_label ? product.era_label.split(" ")[0] : ""}</span>
-                      </div>
-                      <Link href={`/products/${product.slug}`}>
-                        <h3 className="font-heading text-lg font-bold text-[var(--color-text-primary)] group-hover:text-[var(--color-brand)] transition-colors line-clamp-2 leading-snug">
-                          {product.name}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-[var(--color-text-secondary)] mt-1.5 line-clamp-1 font-normal">
-                        {product.condition_label}
-                      </p>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-black/5 flex items-center justify-between">
-                      <div>
-                        <span className="text-base font-extrabold text-[var(--color-text-primary)]">
-                          Rs. {product.price.toLocaleString("en-IN")}
-                        </span>
-                        {product.original_price && (
-                          <span className="text-xs text-[var(--color-text-secondary)] line-through ml-2">
-                            Rs. {product.original_price.toLocaleString("en-IN")}
-                          </span>
-                        )}
-                      </div>
-
-                      <Link
-                        href={`/products/${product.slug}`}
-                        className="px-4 py-2 rounded-xl bg-[var(--color-bg-primary)] group-hover:bg-[var(--color-brand)] text-[var(--color-text-primary)] group-hover:text-white text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-1.5"
-                      >
-                        <span>View</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <WatchCard key={product.id} watch={product} />
               ))}
             </div>
           )}
         </div>
+
       </div>
     </div>
+  )
+}
+
+export function WatchCatalogGrid(props: WatchCatalogGridProps) {
+  return (
+    <React.Suspense fallback={
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-16 text-center font-mono text-xs text-[#5C646D]">
+        Loading horological archive...
+      </div>
+    }>
+      <WatchCatalogGridContent {...props} />
+    </React.Suspense>
   )
 }
