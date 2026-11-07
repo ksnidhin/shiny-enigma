@@ -40,3 +40,12 @@ yarn-error.log*
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# Temporary Import & Staging Artefacts
+tmp_*
+tmp_*/**
+*.backup_pre_import.json
+*.local_backup.json
+*.vps_sync.json
+data/*.tar.gz
+data/staged_images.tar.gz
