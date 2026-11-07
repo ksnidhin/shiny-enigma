@@ -39,11 +39,11 @@ router.get("/watches", async (req: Request, res: Response): Promise<void> => {
     if (search && search.trim() !== "") {
       const term = search.toLowerCase().trim()
       all = all.filter(w =>
-        w.name.toLowerCase().includes(term) ||
-        w.brand.toLowerCase().includes(term) ||
-        w.model_name.toLowerCase().includes(term) ||
-        w.reference_number.toLowerCase().includes(term) ||
-        w.description.toLowerCase().includes(term)
+        (w.name || "").toLowerCase().includes(term) ||
+        (w.brand || "").toLowerCase().includes(term) ||
+        (w.model_name || "").toLowerCase().includes(term) ||
+        (w.reference_number || "").toLowerCase().includes(term) ||
+        (w.description || "").toLowerCase().includes(term)
       )
     }
 
@@ -74,8 +74,9 @@ router.get("/watches", async (req: Request, res: Response): Promise<void> => {
     const available_brands = Array.from(new Set(allWatches.map(w => w.brand))).sort()
     const available_collections = Array.from(new Set(allWatches.map(w => w.collection)))
 
-    const pageNum = parseInt(page || "1", 10) || 1
-    const limitNum = parseInt(limit || "50", 10) || 50
+    const pageNum = Math.max(1, parseInt(page || "1", 10) || 1)
+    const limitNum = limit === "all" ? (all.length || 1) : Math.max(1, parseInt(limit || "50", 10) || 50)
+    const totalPages = Math.ceil(all.length / limitNum) || 1
     const start = (pageNum - 1) * limitNum
     const paginated = all.slice(start, start + limitNum)
 
@@ -83,6 +84,9 @@ router.get("/watches", async (req: Request, res: Response): Promise<void> => {
       success: true,
       count: paginated.length,
       total: all.length,
+      page: pageNum,
+      limit: limitNum,
+      total_pages: totalPages,
       available_brands,
       available_collections,
       data: paginated,

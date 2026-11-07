@@ -53,11 +53,15 @@ export async function fetchWatches(filters?: {
   sort?: string;
   search?: string;
   in_stock?: boolean;
-  limit?: number;
+  limit?: number | string;
+  page?: number | string;
 }): Promise<{
   success: boolean;
   count: number;
   total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
   available_brands: string[];
   available_collections: string[];
   data: WatchProduct[];
@@ -73,6 +77,7 @@ export async function fetchWatches(filters?: {
     if (filters?.search) params.set("search", filters.search)
     if (filters?.in_stock) params.set("in_stock", "true")
     if (filters?.limit !== undefined) params.set("limit", filters.limit.toString())
+    if (filters?.page !== undefined) params.set("page", filters.page.toString())
 
     const res = await fetch(`${API_BASE}/watches?${params.toString()}`, {
       next: { revalidate: 0 },
@@ -135,13 +140,22 @@ export async function fetchWatches(filters?: {
   const available_brands = Array.from(new Set(LOCAL_WATCH_CATALOG.map(w => w.brand))).sort()
   const available_collections = Array.from(new Set(LOCAL_WATCH_CATALOG.map(w => w.collection)))
 
+  const pageNum = filters?.page ? Math.max(1, parseInt(filters.page.toString(), 10) || 1) : 1
+  const limitNum = filters?.limit ? (filters.limit === "all" ? filtered.length : Math.max(1, parseInt(filters.limit.toString(), 10) || 50)) : 50
+  const totalPages = Math.ceil(filtered.length / limitNum) || 1
+  const start = (pageNum - 1) * limitNum
+  const paginated = filtered.slice(start, start + limitNum)
+
   return {
     success: true,
-    count: filtered.length,
-    total: LOCAL_WATCH_CATALOG.length,
+    count: paginated.length,
+    total: filtered.length,
+    page: pageNum,
+    limit: limitNum,
+    total_pages: totalPages,
     available_brands,
     available_collections,
-    data: filtered,
+    data: paginated,
   }
 }
 

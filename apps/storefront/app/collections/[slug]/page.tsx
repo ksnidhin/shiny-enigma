@@ -1,7 +1,6 @@
 import { fetchWatches } from "@/lib/api"
 import { WatchCatalogGrid } from "@/components/store/WatchCatalogGrid"
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
 
 const getCollectionMeta = (slug: string, count?: number): { title: string; subtitle: string } => {
   const meta: Record<string, { title: string; subtitle: string }> = {
@@ -53,23 +52,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CollectionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams?: Promise<{ page?: string; limit?: string; [key: string]: string | undefined }>
+}) {
   const resolvedParams = await params
+  const resolvedSearch = searchParams ? await searchParams : {}
   const slug = resolvedParams.slug.toLowerCase()
+  const page = Math.max(1, parseInt(resolvedSearch.page || "1", 10) || 1)
+  const limit = resolvedSearch.limit ? parseInt(resolvedSearch.limit, 10) || 50 : 50
   
-  const result = await fetchWatches(slug === "all" ? {} : { collection: slug })
-  
-  if (result.data.length === 0 && slug !== "all") {
-    // We now allow dynamic categories, so we simply show an empty grid instead of throwing a 404.
-  }
+  const result = await fetchWatches(
+    slug === "all" ? { page, limit } : { collection: slug, page, limit }
+  )
 
-  const metaCount = slug === "all" ? result.total : result.count;
+  const metaCount = slug === "all" ? result.total : result.count
   const meta = getCollectionMeta(slug, metaCount)
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
       <WatchCatalogGrid 
         initialWatches={result.data}
+        initialTotal={result.total}
+        initialPage={result.page || page}
+        initialLimit={result.limit || limit}
+        initialTotalPages={result.total_pages || Math.ceil((result.total || 0) / limit)}
         collectionSlug={slug}
         availableBrands={result.available_brands}
         collectionTitle={meta.title}
