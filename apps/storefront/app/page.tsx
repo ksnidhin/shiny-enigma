@@ -23,21 +23,25 @@ const TYPE_CATEGORIES = [
     title: "Japanese",
     image: "/brand_japanese_hq.png",
     href: "/collections/japanese-vintage",
+    alt: "Curated Japanese vintage watches - Seiko, Citizen and Orient in India",
   },
   {
     title: "Swiss",
     image: "/brand_swiss_hq.png",
     href: "/collections/swiss-vintage",
+    alt: "Authentic Swiss vintage watches - Sandoz, Omega and Tissot",
   },
   {
     title: "Indian",
     image: "/brand_indian_hq.png",
     href: "/collections/hmt-watches",
+    alt: "Heritage Indian vintage watches - Original serviced HMT hand-wound",
   },
   {
     title: "Digital",
     image: "/brand_digital_hq.png",
     href: "/collections/casio",
+    alt: "Vintage digital watches - Casio Databank, World Time and LCD classics",
   },
 ]
 
@@ -127,7 +131,7 @@ export default async function Home() {
               >
                 <Image
                   src={cat.image}
-                  alt={cat.title}
+                  alt={cat.alt || cat.title}
                   fill
                   sizes="(max-width: 640px) 25vw, (max-width: 1024px) 25vw, 25vw"
                   className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -260,7 +264,7 @@ export default async function Home() {
                     More Than a Store<span className="text-[#C85A17]">.</span>
                   </h2>
                   <p className="text-sm text-[#5C646D] leading-relaxed mt-2 max-w-xl">
-                    A curated archive of vintage timepieces for collectors, enthusiasts and new explorers. We believe in preserving mechanical heritage, giving storied watches second lives on appreciative wrists.
+                    RetroTimeCo is a dedicated independent horological archive in India. From 1970s Japanese mechanical automatics (Seiko 5, Citizen Eagle 7) and historic Bengaluru-crafted Indian timepieces (HMT Janata, Pilot) to timeless Swiss dress models, every vintage watch is individually inspected, regulated, demagnetized, and serviced before reaching your wrist.
                   </p>
                 </div>
               </div>

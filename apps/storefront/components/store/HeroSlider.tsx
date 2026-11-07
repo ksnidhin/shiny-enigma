@@ -19,9 +19,9 @@ export const DEFAULT_SLIDES: HeroSlide[] = [
   {
     id: "vintage-archive-01",
     imageUrl: "/watch_seiko_vintage_1785170846705.jpg",
-    categoryTag: "VINTAGE WATCHES",
-    title: "REAL VINTAGE WATCHES.",
-    subtitle: "Authentic mechanical watches, tested and ready for daily wear.",
+    categoryTag: "VINTAGE WATCHES INDIA",
+    title: "CURATED VINTAGE WATCHES IN INDIA.",
+    subtitle: "Authentic Seiko, HMT, Citizen & Swiss mechanical timepieces, inspected and shipped across India.",
     linkText: "EXPLORE VINTAGE ↗",
     linkUrl: "/collections/all",
   },

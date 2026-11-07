@@ -22,31 +22,34 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://retrotimeco.in";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "RetroTimeCo | Curated Vintage Watches in India",
+    default: "Vintage Watches in India | RetroTimeCo",
     template: "%s | RetroTimeCo",
   },
-  description: "Curated Japanese & Swiss vintage timepieces in India. Fully serviced, 100% authentic watches with express delivery. Rare Seiko, Casio, Citizen, and Omega.",
+  description: "Discover authentic vintage Seiko, HMT, Citizen, Casio and Swiss watches at RetroTimeCo. Carefully curated timepieces, inspected and shipped across India.",
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
-    title: "RetroTimeCo | Vintage Watches in India",
-    description: "Curated vintage Seiko, Casio & Swiss timepieces. Fully serviced & authenticated.",
+    title: "Vintage Watches in India | RetroTimeCo",
+    description: "Discover authentic vintage Seiko, HMT, Citizen, Casio and Swiss watches at RetroTimeCo. Carefully curated timepieces, inspected and shipped across India.",
     url: siteUrl,
     siteName: "RetroTimeCo",
     locale: "en_IN",
     type: "website",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/brand_japanese_hq.jpg",
         width: 1200,
         height: 630,
-        alt: "RetroTimeCo Vintage Watches",
+        alt: "RetroTimeCo Curated Vintage Watches India",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "RetroTimeCo | Vintage Watches in India",
-    description: "Curated vintage Seiko, Casio & Swiss timepieces. Fully serviced & authenticated.",
-    images: ["/og-image.jpg"],
+    title: "Vintage Watches in India | RetroTimeCo",
+    description: "Discover authentic vintage Seiko, HMT, Citizen, Casio and Swiss watches at RetroTimeCo. Carefully curated timepieces, inspected and shipped across India.",
+    images: ["/brand_japanese_hq.jpg"],
   },
 };
 
@@ -57,11 +60,35 @@ export default function RootLayout({
 }>) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "RetroTimeCo",
-    url: siteUrl,
-    logo: `${siteUrl}/logo.png`,
-    description: "Curated vintage Seiko, Casio & Swiss timepieces in India.",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "RetroTimeCo",
+        url: siteUrl,
+        logo: `${siteUrl}/logo.png`,
+        description: "Curated vintage Seiko, HMT, Citizen, Casio & Swiss timepieces in India.",
+        areaServed: {
+          "@type": "Country",
+          name: "India",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "RetroTimeCo",
+        description: "Authentic Vintage Watches in India",
+        publisher: {
+          "@id": `${siteUrl}/#organization`,
+        },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${siteUrl}/search?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
   };
 
   return (
