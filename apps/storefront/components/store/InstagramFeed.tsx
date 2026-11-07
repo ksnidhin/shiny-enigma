@@ -55,7 +55,7 @@ export function InstagramFeed() {
               Follow The Workshop
             </h2>
             <p className="mt-2 text-[#5C646D] text-xs sm:text-sm font-mono max-w-xl">
-              Daily vintage arrivals, movement timing graphs, and restoration stories live from Chennai.
+              Daily vintage arrivals, movement timing graphs, and restoration stories live from the workbench.
             </p>
           </div>
           <Link

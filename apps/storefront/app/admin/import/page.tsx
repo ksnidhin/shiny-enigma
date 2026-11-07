@@ -60,7 +60,7 @@ export default function BulkImportPage() {
             water_resistance: row.water_resistance || "",
           },
           authenticity_guarantee: true,
-          service_history: "Verified and tested at RetroTimeCo Workshop, Chennai.",
+          service_history: "Verified and tested at RetroTimeCo Workshop.",
         }))
 
         // Validation check for required fields

@@ -352,7 +352,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           <div className="flex flex-col items-center gap-1.5 py-2 px-3">
             <Wrench className="w-5 h-5 text-[#C85A17]" />
             <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#11161B]">
-              CHENNAI WORKSHOP SERVICED &amp; REGULATED
+              WORKSHOP SERVICED &amp; REGULATED
             </span>
           </div>
         </div>
@@ -432,7 +432,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
             </h2>
           </div>
           <p className="text-sm text-[#5C646D] leading-relaxed font-light">
-            {watch.description || "Curated vintage timepiece from RetroTimeCo Horological Archive Chennai. Inspected and regulated."}
+            {watch.description || "Curated vintage timepiece from RetroTimeCo Horological Archive. Inspected and regulated."}
           </p>
           {watch.service_history && (
             <div className="mt-3 p-3 bg-[#EAE4D9] border border-[#D8D1C5] font-mono text-xs text-[#5C646D]">

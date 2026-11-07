@@ -153,7 +153,7 @@ function WatchCatalogGridContent({
         <p className="font-mono text-xs sm:text-sm text-[#5C646D] max-w-2xl leading-relaxed">
           {showSavedOnly 
             ? "Your curated collection of bookmarked horological references." 
-            : collectionSubtitle || "Explore our authenticated archive. Physically inspected, movement regulated, and packaged in Chennai."}
+            : collectionSubtitle || "Explore our authenticated archive. Physically inspected, movement regulated, and securely packaged."}
         </p>
       </div>
 

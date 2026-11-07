@@ -11,7 +11,7 @@ const getCollectionMeta = (slug: string, count?: number): { title: string; subti
     },
     "japanese-vintage": {
       title: "Japanese Vintage Timepieces",
-      subtitle: `From Tokyo to your wrist. Curated King Seiko, Grand Seiko, Citizen Bullhead chronographs, and Orient Super Compressors from the 1960s and 1970s Golden Era. Fully regulated in Chennai.`
+      subtitle: `From Tokyo to your wrist. Curated King Seiko, Grand Seiko, Citizen Bullhead chronographs, and Orient Super Compressors from the 1960s and 1970s Golden Era. Fully regulated before dispatch.`
     },
     "swiss-vintage": {
       title: "Swiss Vintage Timepieces — Maison Horlogère",

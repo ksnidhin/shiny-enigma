@@ -182,7 +182,7 @@ export default async function Home() {
             <div className="flex items-center gap-2">
               <span className="w-6 h-[2px] bg-[#C85A17]" />
               <span className="font-mono text-xs font-bold tracking-[0.2em] text-[#C85A17] uppercase">
-                CHENNAI HOROLOGICAL WORKSHOP
+                HOROLOGICAL WORKSHOP STANDARDS
               </span>
             </div>
 

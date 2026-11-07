@@ -5,7 +5,7 @@ import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Sell & Consign Your Watch — RetroTimeCo",
-  description: "Get instant valuations for your vintage timepieces or list them on consignment with our Chennai collectors network.",
+  description: "Get instant valuations for your vintage timepieces or list them on consignment with our collectors network.",
 }
 
 export default function ServicesPage() {
@@ -120,7 +120,7 @@ export default function ServicesPage() {
         <div className="bg-white rounded-2xl border border-[var(--color-border)] p-8 shadow-sm flex flex-col md:flex-row items-center justify-around gap-6 text-center md:text-left text-xs font-semibold text-[var(--color-text-primary)]">
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-[var(--color-brand)] flex-shrink-0" />
-            <span>Workshop &amp; Storage: Bandra West, Chennai 400050</span>
+            <span>Horological Workshop &amp; Studio, India</span>
           </div>
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-[var(--color-brand)] flex-shrink-0" />

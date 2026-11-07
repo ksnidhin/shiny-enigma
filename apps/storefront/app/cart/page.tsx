@@ -83,7 +83,7 @@ export default function CartPage() {
                 COMPLIMENTARY EXPRESS SHIPPING • INDIA-WIDE
               </p>
               <p className="font-mono text-[11px] text-gray-300">
-                All shipments insured and dispatched via India Post Speed Post / Blue Dart from Chennai.
+                All shipments insured and dispatched via India Post Speed Post / Blue Dart express delivery.
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function CartPage() {
               </button>
 
               <div className="font-mono text-[10px] text-[#5C646D] leading-relaxed pt-2 space-y-1">
-                <p>✓ Instant confirmation with our Chennai horology desk.</p>
+                <p>✓ Instant confirmation with our horology desk.</p>
                 <p>✓ Tracked dispatch with continuous video unboxing warranty.</p>
                 <p>✓ 7-Day Replacement Policy for mechanical defects.</p>
               </div>

@@ -21,7 +21,7 @@ const POLICIES: Record<string, PolicyData> = {
             <span className="font-mono font-bold block text-xs uppercase tracking-wider mb-1 text-white">
               100% Insured All-India Delivery
             </span>
-            Every timepiece dispatched from our Chennai workshop is fully insured against transit damage, loss, or theft until it is safely signed for at your doorstep.
+            Every timepiece dispatched from our workshop is fully insured against transit damage, loss, or theft until it is safely signed for at your doorstep.
           </div>
         </div>
 
@@ -162,7 +162,7 @@ const POLICIES: Record<string, PolicyData> = {
         </p>
         <h3 className="font-heading text-base font-bold text-[#11161B] uppercase pt-2">1. Vintage Mechanical Tolerances</h3>
         <p>
-          Unless labeled as &quot;Brand New&quot; (such as modern Casio releases), our timepieces from the 1960s, 1970s, and 1980s (Seiko, Citizen, HMT, Swiss models) are historical mechanical devices. While our Chennai workshop regulates movements to high standards (+/- 2 to 15 seconds per day), vintage mechanical watches do not keep quartz-level atomic time.
+          Unless labeled as &quot;Brand New&quot; (such as modern Casio releases), our timepieces from the 1960s, 1970s, and 1980s (Seiko, Citizen, HMT, Swiss models) are historical mechanical devices. While our workshop regulates movements to high standards (+/- 2 to 15 seconds per day), vintage mechanical watches do not keep quartz-level atomic time.
         </p>
         <h3 className="font-heading text-base font-bold text-[#11161B] uppercase pt-2">2. Water Resistance Limitations</h3>
         <p>
@@ -173,7 +173,7 @@ const POLICIES: Record<string, PolicyData> = {
   },
   contact: {
     title: "Workshop & Customer Support Desk",
-    subtitle: "Get in touch with our master horologists and logistics coordinators in Chennai.",
+    subtitle: "Get in touch with our master horologists and logistics coordinators.",
     content: (
       <div className="space-y-6 text-xs sm:text-sm leading-relaxed text-[#5C646D]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -188,7 +188,7 @@ const POLICIES: Record<string, PolicyData> = {
 
           <div className="p-5 bg-[#F4EFE6] border border-[#D8D1C5] space-y-2">
             <MapPin className="w-5 h-5 text-[#C85A17]" />
-            <h4 className="font-mono font-bold text-xs uppercase tracking-wider text-[#11161B]">Chennai Workshop</h4>
+            <h4 className="font-mono font-bold text-xs uppercase tracking-wider text-[#11161B]">Horological Workshop</h4>
             <p className="text-xs text-[#5C646D]">Central inspection, restoration, and secure vault storage facility.</p>
             <address className="not-italic font-mono text-xs text-[#11161B] pt-1 leading-relaxed">
               372 Beach View, Chennai,<br />Tamil Nadu — 600019

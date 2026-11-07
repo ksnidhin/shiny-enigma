@@ -30,7 +30,7 @@ export function Footer() {
               RetroTimeCo<span className="text-[#C85A17]">.</span>
             </h2>
             <p className="text-gray-300 max-w-md text-sm leading-relaxed font-light">
-              Independent vintage horological archive based in Chennai. Specializing in curated 1960s–1990s Japanese mechanicals, Swiss chronometers, and iconic Casio references. Every piece physically inspected, regulated for timekeeping, and backed by our authenticity guarantee.
+              Independent vintage horological archive based in India. Specializing in curated 1960s–1990s Japanese mechanicals, Swiss chronometers, and iconic Casio references. Every piece physically inspected, regulated for timekeeping, and backed by our authenticity guarantee.
             </p>
             <div className="text-xs text-gray-400 flex items-start gap-2 pt-2">
               <MapPin className="w-4 h-4 text-[#C85A17] shrink-0 mt-0.5" />

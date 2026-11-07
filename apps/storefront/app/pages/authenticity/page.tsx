@@ -24,7 +24,7 @@ export default function AuthenticityPage() {
             100% Authenticity Guaranteed
           </h1>
           <p className="font-mono text-xs sm:text-sm text-[#5C646D] max-w-2xl mx-auto leading-relaxed">
-            Every vintage timepiece at RetroTimeCo undergoes physical caseback opening, caliber examination, and multi-position timegrapher regulation by expert horologists in Chennai.
+            Every vintage timepiece at RetroTimeCo undergoes physical caseback opening, caliber examination, and multi-position timegrapher regulation by expert horologists.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function AuthenticityPage() {
                 PHASE 2 • CALIBRE INSPECTION &amp; REGULATION
               </span>
               <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#11161B]">
-                Chennai Workshop Regulation
+                In-House Workshop Regulation
               </h2>
               <p className="text-xs sm:text-sm text-[#5C646D] leading-relaxed font-light">
                 Our watchmakers physically open every watch to verify original escapements, rotor assemblies, and balance springs. Pieces are demagnetized and regulated on digital timegraphers for daily beat rate and amplitude.
