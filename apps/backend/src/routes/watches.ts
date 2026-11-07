@@ -54,15 +54,20 @@ router.get("/watches", async (req: Request, res: Response): Promise<void> => {
       return bStock - aStock
     }
 
+    const getWatchTimestamp = (w: WatchProduct): number => {
+      const match = (w.id || "").match(/\d{10,13}/)
+      return match ? parseInt(match[0], 10) : 0
+    }
+
     if (sort) {
       if (sort === "price_asc") all.sort((a, b) => stockSort(a, b) || a.price - b.price)
       else if (sort === "price_desc") all.sort((a, b) => stockSort(a, b) || b.price - a.price)
-      else if (sort === "newest") all.sort((a, b) => stockSort(a, b) || b.id.localeCompare(a.id))
+      else if (sort === "newest") all.sort((a, b) => stockSort(a, b) || (getWatchTimestamp(b) - getWatchTimestamp(a)) || b.id.localeCompare(a.id))
       else if (sort === "featured" || sort === "popular") all.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
       else all.sort((a, b) => stockSort(a, b))
     } else {
       // Default sort: in_stock first, then featured, then newest
-      all.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.id.localeCompare(a.id))
+      all.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (getWatchTimestamp(b) - getWatchTimestamp(a)) || b.id.localeCompare(a.id))
     }
 
     const allWatches = await WatchStorage.getAll()

@@ -97,12 +97,17 @@ function WatchCatalogGridContent({
       return bStock - aStock
     }
 
+    const getWatchTimestamp = (w: WatchProduct): number => {
+      const match = (w.id || "").match(/\d{10,13}/)
+      return match ? parseInt(match[0], 10) : 0
+    }
+
     if (sortBy === "price_asc") {
       result.sort((a, b) => stockSort(a, b) || a.price - b.price)
     } else if (sortBy === "price_desc") {
       result.sort((a, b) => stockSort(a, b) || b.price - a.price)
     } else if (sortBy === "newest") {
-      result.sort((a, b) => stockSort(a, b) || b.id.localeCompare(a.id))
+      result.sort((a, b) => stockSort(a, b) || (getWatchTimestamp(b) - getWatchTimestamp(a)) || b.id.localeCompare(a.id))
     } else if (sortBy === "featured") {
       result.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
     } else {

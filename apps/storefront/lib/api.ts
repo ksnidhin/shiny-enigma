@@ -53,6 +53,7 @@ export async function fetchWatches(filters?: {
   sort?: string;
   search?: string;
   in_stock?: boolean;
+  limit?: number;
 }): Promise<{
   success: boolean;
   count: number;
@@ -71,6 +72,7 @@ export async function fetchWatches(filters?: {
     if (filters?.sort) params.set("sort", filters.sort)
     if (filters?.search) params.set("search", filters.search)
     if (filters?.in_stock) params.set("in_stock", "true")
+    if (filters?.limit !== undefined) params.set("limit", filters.limit.toString())
 
     const res = await fetch(`${API_BASE}/watches?${params.toString()}`, {
       next: { revalidate: 0 },
@@ -115,9 +117,15 @@ export async function fetchWatches(filters?: {
     return (b.in_stock ? 1 : 0) - (a.in_stock ? 1 : 0)
   }
 
+  const getWatchTimestamp = (w: WatchProduct): number => {
+    const match = (w.id || "").match(/\d{10,13}/)
+    return match ? parseInt(match[0], 10) : 0
+  }
+
   if (filters?.sort) {
     if (filters.sort === "price_asc") filtered.sort((a, b) => stockSort(a, b) || a.price - b.price)
     else if (filters.sort === "price_desc") filtered.sort((a, b) => stockSort(a, b) || b.price - a.price)
+    else if (filters.sort === "newest") filtered.sort((a, b) => stockSort(a, b) || (getWatchTimestamp(b) - getWatchTimestamp(a)) || b.id.localeCompare(a.id))
     else if (filters.sort === "featured") filtered.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
     else filtered.sort((a, b) => stockSort(a, b))
   } else {

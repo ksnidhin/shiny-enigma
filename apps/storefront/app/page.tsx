@@ -42,11 +42,25 @@ const TYPE_CATEGORIES = [
 export default async function Home() {
   const [slides, watchesRes] = await Promise.all([
     getHeroSlides(),
-    fetchWatches({ in_stock: true, limit: 8 } as any),
+    fetchWatches({ in_stock: true, sort: "newest" }),
   ])
 
-  const latestWatches = watchesRes.success && watchesRes.data.length > 0 
-    ? watchesRes.data.slice(0, 8) 
+  // Prioritize recently added unsold watches first
+  const getWatchTimestamp = (w: any): number => {
+    const match = (w.id || "").match(/\d{10,13}/)
+    return match ? parseInt(match[0], 10) : 0
+  }
+
+  const latestWatches = watchesRes.success && Array.isArray(watchesRes.data)
+    ? watchesRes.data
+        .filter((w) => w.in_stock)
+        .sort((a, b) => {
+          const tA = getWatchTimestamp(a)
+          const tB = getWatchTimestamp(b)
+          if (tB !== tA) return tB - tA
+          return b.id.localeCompare(a.id)
+        })
+        .slice(0, 8)
     : []
 
   return (
