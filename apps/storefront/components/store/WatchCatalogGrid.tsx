@@ -90,15 +90,23 @@ function WatchCatalogGridContent({
       )
     }
 
-    // Sorting
+    // Sorting: prioritize available watches first, then sold watches
+    const stockSort = (a: WatchProduct, b: WatchProduct) => {
+      const aStock = a.in_stock ? 1 : 0
+      const bStock = b.in_stock ? 1 : 0
+      return bStock - aStock
+    }
+
     if (sortBy === "price_asc") {
-      result.sort((a, b) => a.price - b.price)
+      result.sort((a, b) => stockSort(a, b) || a.price - b.price)
     } else if (sortBy === "price_desc") {
-      result.sort((a, b) => b.price - a.price)
+      result.sort((a, b) => stockSort(a, b) || b.price - a.price)
     } else if (sortBy === "newest") {
-      result.sort((a, b) => b.id.localeCompare(a.id))
+      result.sort((a, b) => stockSort(a, b) || b.id.localeCompare(a.id))
     } else if (sortBy === "featured") {
-      result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
+      result.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
+    } else {
+      result.sort((a, b) => stockSort(a, b))
     }
 
     setWatches(result)

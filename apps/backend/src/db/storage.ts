@@ -73,7 +73,18 @@ export class WatchStorage {
   public static async getAll(): Promise<WatchProduct[]> {
     this.initFile()
     const data = fs.readFileSync(DATA_FILE, "utf-8")
-    return JSON.parse(data) as WatchProduct[]
+    const watches = JSON.parse(data) as WatchProduct[]
+    let needsSave = false
+    for (const w of watches) {
+      if (!w.in_stock && w.featured) {
+        w.featured = false
+        needsSave = true
+      }
+    }
+    if (needsSave) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(watches, null, 2))
+    }
+    return watches
   }
 
   public static async getByIdOrSlug(idOrSlug: string): Promise<WatchProduct | undefined> {
@@ -91,13 +102,16 @@ export class WatchStorage {
     const newId = watch.id || `rtc-${Date.now()}`
     const slug = watch.slug || watch.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
     
+    const inStock = watch.in_stock ?? true
+    const featured = inStock ? (watch.featured ?? false) : false
+    
     const newWatch: WatchProduct = {
       ...watch,
       id: newId,
       slug,
       gallery_images: watch.gallery_images?.length ? watch.gallery_images : [watch.image],
-      in_stock: watch.in_stock ?? true,
-      featured: watch.featured ?? false,
+      in_stock: inStock,
+      featured: featured,
       rating: watch.rating || 5.0,
       reviews_count: watch.reviews_count || 1,
       authenticity_guarantee: watch.authenticity_guarantee ?? true,
@@ -113,7 +127,13 @@ export class WatchStorage {
     const index = all.findIndex(w => w.id === id)
     if (index === -1) return null
 
-    const updated = { ...all[index], ...updates }
+    const target = all[index]
+    const effectiveInStock = updates.in_stock !== undefined ? updates.in_stock : target.in_stock
+    if (!effectiveInStock) {
+      updates.featured = false
+    }
+
+    const updated = { ...target, ...updates }
     all[index] = updated
     await this.saveAll(all)
     return updated

@@ -124,7 +124,13 @@ export default function EditTimepiecePage() {
     } else {
       if (type === "checkbox") {
         const checked = (e.target as HTMLInputElement).checked
-        setFormData((prev: any) => ({ ...prev, [name]: checked }))
+        setFormData((prev: any) => {
+          const next = { ...prev, [name]: checked }
+          if (name === "in_stock" && !checked) {
+            next.featured = false
+          }
+          return next
+        })
       } else if (type === "number") {
         setFormData((prev: any) => ({ ...prev, [name]: parseFloat(value) || 0 }))
       } else {
@@ -418,15 +424,19 @@ export default function EditTimepiecePage() {
                 <span className="text-sm text-[#202223]">In Stock (Available for purchase)</span>
               </label>
 
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label className={`flex items-center gap-3 ${!formData.in_stock ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}>
                 <input
                   type="checkbox"
                   name="featured"
-                  checked={formData.featured}
+                  checked={Boolean(formData.featured && formData.in_stock)}
+                  disabled={!formData.in_stock}
                   onChange={handleChange}
                   className="w-4 h-4 text-[#008060] border-[#D2D5D9] rounded focus:ring-[#008060]"
                 />
-                <span className="text-sm text-[#202223]">Featured (Show on homepage)</span>
+                <span className="text-sm text-[#202223]">
+                  Featured (Show on homepage)
+                  {!formData.in_stock && <span className="text-xs text-[#8C9196] block font-normal">Available watches only</span>}
+                </span>
               </label>
             </div>
           </div>

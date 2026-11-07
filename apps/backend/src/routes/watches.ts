@@ -47,11 +47,22 @@ router.get("/watches", async (req: Request, res: Response): Promise<void> => {
       )
     }
 
+    // Primary sort: Prioritize available watches first (in_stock: true), then sold watches
+    const stockSort = (a: WatchProduct, b: WatchProduct) => {
+      const aStock = a.in_stock ? 1 : 0
+      const bStock = b.in_stock ? 1 : 0
+      return bStock - aStock
+    }
+
     if (sort) {
-      if (sort === "price_asc") all.sort((a, b) => a.price - b.price)
-      else if (sort === "price_desc") all.sort((a, b) => b.price - a.price)
-      else if (sort === "newest") all.sort((a, b) => b.id.localeCompare(a.id))
-      else if (sort === "featured" || sort === "popular") all.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
+      if (sort === "price_asc") all.sort((a, b) => stockSort(a, b) || a.price - b.price)
+      else if (sort === "price_desc") all.sort((a, b) => stockSort(a, b) || b.price - a.price)
+      else if (sort === "newest") all.sort((a, b) => stockSort(a, b) || b.id.localeCompare(a.id))
+      else if (sort === "featured" || sort === "popular") all.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.rating - a.rating)
+      else all.sort((a, b) => stockSort(a, b))
+    } else {
+      // Default sort: in_stock first, then featured, then newest
+      all.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.id.localeCompare(a.id))
     }
 
     const allWatches = await WatchStorage.getAll()
@@ -147,7 +158,11 @@ router.post("/watches", async (req: Request, res: Response): Promise<void> => {
 router.put("/watches/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const idStr = getId(req.params.id)
-    const updated = await WatchStorage.update(idStr, req.body)
+    const updates = { ...(req.body || {}) }
+    if (updates.in_stock === false) {
+      updates.featured = false
+    }
+    const updated = await WatchStorage.update(idStr, updates)
     if (!updated) {
       res.status(404).json({ success: false, message: "Timepiece not found for update" })
       return
@@ -329,13 +344,15 @@ router.post("/watches/bulk", async (req: Request, res: Response): Promise<void> 
     const currentWatches = await WatchStorage.getAll()
     const newWatches = watches.map(w => {
       const slug = w.slug || w.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `watch-${Date.now()}`
+      const inStock = w.in_stock ?? true
+      const featured = inStock ? (w.featured ?? false) : false
       return {
         ...w,
         id: w.id || `rtc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         slug,
         gallery_images: w.gallery_images?.length ? w.gallery_images : (w.image ? [w.image] : []),
-        in_stock: w.in_stock ?? true,
-        featured: w.featured ?? false,
+        in_stock: inStock,
+        featured: featured,
         rating: w.rating || 5.0,
         reviews_count: w.reviews_count || 1,
         authenticity_guarantee: w.authenticity_guarantee ?? true,
@@ -361,7 +378,7 @@ router.post("/watches/bulk-action", async (req: Request, res: Response): Promise
     if (action === "delete") {
       currentWatches = currentWatches.filter(w => !ids.includes(w.id))
     } else if (action === "mark_sold_out") {
-      currentWatches = currentWatches.map(w => ids.includes(w.id) ? { ...w, in_stock: false } : w)
+      currentWatches = currentWatches.map(w => ids.includes(w.id) ? { ...w, in_stock: false, featured: false } : w)
     } else if (action === "mark_active") {
       currentWatches = currentWatches.map(w => ids.includes(w.id) ? { ...w, in_stock: true } : w)
     }

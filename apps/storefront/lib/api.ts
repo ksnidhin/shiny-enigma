@@ -111,10 +111,17 @@ export async function fetchWatches(filters?: {
       w.description.toLowerCase().includes(term)
     )
   }
+  const stockSort = (a: WatchProduct, b: WatchProduct) => {
+    return (b.in_stock ? 1 : 0) - (a.in_stock ? 1 : 0)
+  }
+
   if (filters?.sort) {
-    if (filters.sort === "price_asc") filtered.sort((a, b) => a.price - b.price)
-    if (filters.sort === "price_desc") filtered.sort((a, b) => b.price - a.price)
-    if (filters.sort === "featured") filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+    if (filters.sort === "price_asc") filtered.sort((a, b) => stockSort(a, b) || a.price - b.price)
+    else if (filters.sort === "price_desc") filtered.sort((a, b) => stockSort(a, b) || b.price - a.price)
+    else if (filters.sort === "featured") filtered.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+    else filtered.sort((a, b) => stockSort(a, b))
+  } else {
+    filtered.sort((a, b) => stockSort(a, b) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
   }
 
   const available_brands = Array.from(new Set(LOCAL_WATCH_CATALOG.map(w => w.brand))).sort()
@@ -216,10 +223,14 @@ export async function createWatch(watch: Partial<WatchProduct>): Promise<{ succe
 
 export async function updateWatch(id: string, updates: Partial<WatchProduct>): Promise<{ success: boolean; data?: WatchProduct; message?: string }> {
   try {
+    const payload = { ...updates }
+    if (payload.in_stock === false) {
+      payload.featured = false
+    }
     const res = await fetch(`${API_BASE}/watches/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
+      body: JSON.stringify(payload),
     })
     return await res.json()
   } catch (err) {

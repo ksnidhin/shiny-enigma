@@ -19,26 +19,22 @@ async function getHeroSlides() {
 const TYPE_CATEGORIES = [
   {
     title: "Japanese",
-    subtitle: "Seiko, Citizen & Orient",
-    image: "/watch_seiko_vintage_1785170846705.jpg",
+    image: "/brand_japanese_hq.png",
     href: "/collections/japanese-vintage",
   },
   {
     title: "Swiss",
-    subtitle: "Omega, Tissot & Vintage Heuers",
-    image: "/watch_swiss_vintage_1785170866472.jpg",
+    image: "/brand_swiss_hq.png",
     href: "/collections/swiss-vintage",
   },
   {
     title: "Indian",
-    subtitle: "HMT Mechanicals & Janata",
-    image: "/hmt_vintage_watch_1785257285844.jpg",
+    image: "/brand_indian_hq.png",
     href: "/collections/hmt-watches",
   },
   {
     title: "Digital",
-    subtitle: "Casio Retro & World Time",
-    image: "/watch_casio_edifice_1785170834699.jpg",
+    image: "/brand_digital_hq.png",
     href: "/collections/casio",
   },
 ]
@@ -105,29 +101,26 @@ export default async function Home() {
             </Link>
           </div>
 
-          {/* 4 Cards Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {/* 4 Brand Cards in 1 Row (4 columns on all devices matching design reference) */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3.5 md:gap-4">
             {TYPE_CATEGORIES.map((cat) => (
               <Link
                 key={cat.title}
                 href={cat.href}
-                className="group relative aspect-4/3 sm:aspect-square overflow-hidden bg-[#16212E] border border-[#D8D1C5] hover:border-[#0E1622] transition-all"
+                className="group relative aspect-[5/4] sm:aspect-[4/3] overflow-hidden bg-[#16212E] border border-[#D8D1C5] hover:border-[#11161B] transition-all shadow-sm"
               >
                 <Image
                   src={cat.image}
                   alt={cat.title}
                   fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 25vw, (max-width: 1024px) 25vw, 25vw"
                   className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="font-heading text-base sm:text-lg font-bold text-white group-hover:text-[#C85A17] transition-colors leading-tight">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 right-1">
+                  <h3 className="font-heading text-xs sm:text-sm md:text-base font-bold text-white group-hover:text-[#C85A17] transition-colors leading-tight">
                     {cat.title}
                   </h3>
-                  <span className="font-mono text-[10px] text-gray-300 block mt-0.5 truncate">
-                    {cat.subtitle}
-                  </span>
                 </div>
               </Link>
             ))}
