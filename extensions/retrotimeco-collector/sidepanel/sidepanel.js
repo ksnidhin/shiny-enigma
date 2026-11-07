@@ -38,6 +38,106 @@
   const modalActions = document.getElementById("modal-actions");
   const btnModalClose = document.getElementById("btn-modal-close");
 
+  // Active bar elements
+  const activeBarTag = document.getElementById("active-bar-tag");
+  const activeBarTitle = document.getElementById("active-bar-title");
+  const btnActiveCollectPost = document.getElementById("btn-active-collect-post");
+  const btnActiveScanCarousel = document.getElementById("btn-active-scan-carousel");
+  const btnActiveCollectAll = document.getElementById("btn-active-collect-all");
+  const rtcTabStatus = document.getElementById("rtc-tab-status");
+
+  let activeTabPost = null;
+
+  // Query active tab and update collector bar
+  async function pollActiveTab() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab || !tab.url || !tab.url.includes("instagram.com")) {
+        if (rtcTabStatus) rtcTabStatus.textContent = "Waiting for Instagram";
+        if (activeBarTag) activeBarTag.textContent = "Instagram Tab";
+        if (activeBarTitle) activeBarTitle.textContent = "Open an Instagram tab to collect posts";
+        if (btnActiveCollectPost) btnActiveCollectPost.style.display = "none";
+        if (btnActiveScanCarousel) btnActiveScanCarousel.style.display = "none";
+        if (btnActiveCollectAll) btnActiveCollectAll.style.display = "none";
+        return;
+      }
+
+      if (rtcTabStatus) rtcTabStatus.textContent = "Instagram Active";
+
+      chrome.tabs.sendMessage(tab.id, { type: "GET_ACTIVE_POST_DATA" }, (res) => {
+        if (chrome.runtime.lastError || !res) {
+          if (activeBarTitle) activeBarTitle.textContent = "Browsing Instagram...";
+          return;
+        }
+
+        if (res.currentPost) {
+          activeTabPost = res.currentPost;
+          const inQueue = queue.some((p) => p.post_id === res.currentPost.post_id);
+          const price = res.currentPost.detected_price ? ` (₹${res.currentPost.detected_price.toLocaleString("en-IN")})` : "";
+          
+          if (activeBarTag) activeBarTag.textContent = "Current Watch Post";
+          if (activeBarTitle) activeBarTitle.textContent = `#${res.currentPost.post_id}${price} — ${res.currentPost.image_count} photos`;
+          
+          if (btnActiveCollectPost) {
+            btnActiveCollectPost.style.display = "inline-flex";
+            btnActiveCollectPost.textContent = inQueue ? "✓ In Queue" : "+ Add Watch";
+            btnActiveCollectPost.disabled = inQueue;
+          }
+
+          if (btnActiveScanCarousel) {
+            btnActiveScanCarousel.style.display = res.currentPost.is_carousel ? "inline-flex" : "none";
+          }
+
+          if (btnActiveCollectAll) btnActiveCollectAll.style.display = "none";
+        } else {
+          activeTabPost = null;
+          if (activeBarTag) activeBarTag.textContent = "Instagram Feed / Grid";
+          if (activeBarTitle) activeBarTitle.textContent = `${res.visibleCount || 0} watches visible (${res.uncollectedCount || 0} new)`;
+
+          if (btnActiveCollectPost) btnActiveCollectPost.style.display = "none";
+          if (btnActiveScanCarousel) btnActiveScanCarousel.style.display = "none";
+
+          if (btnActiveCollectAll) {
+            btnActiveCollectAll.style.display = "inline-flex";
+            btnActiveCollectAll.textContent = `+ Collect Visible (${res.uncollectedCount || 0})`;
+            btnActiveCollectAll.disabled = (res.uncollectedCount || 0) === 0;
+          }
+        }
+      });
+    } catch {}
+  }
+
+  // Active bar click actions
+  btnActiveCollectPost?.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    chrome.tabs.sendMessage(tab.id, { type: "COLLECT_CURRENT_OPEN_POST" }, async (res) => {
+      await loadState();
+      pollActiveTab();
+    });
+  });
+
+  btnActiveScanCarousel?.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    btnActiveScanCarousel.textContent = "Scanning...";
+    btnActiveScanCarousel.disabled = true;
+    chrome.tabs.sendMessage(tab.id, { type: "SCAN_CAROUSEL" }, async () => {
+      btnActiveScanCarousel.textContent = "Scan Carousel";
+      btnActiveScanCarousel.disabled = false;
+      pollActiveTab();
+    });
+  });
+
+  btnActiveCollectAll?.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    chrome.tabs.sendMessage(tab.id, { type: "COLLECT_VISIBLE_POSTS" }, async (res) => {
+      await loadState();
+      pollActiveTab();
+    });
+  });
+
   // Load state from chrome.storage
   async function loadState() {
     const data = await chrome.storage.local.get(["queue", "history"]);
@@ -438,4 +538,11 @@
 
   // Initial load
   loadState();
+  pollActiveTab();
+  setInterval(pollActiveTab, 1500);
+
+  // Tab change listener
+  chrome.tabs.onActivated?.addListener(() => {
+    pollActiveTab();
+  });
 })();

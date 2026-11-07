@@ -133,6 +133,72 @@ body {
   display: flex;
 }
 
+/* Active Page Collector Bar */
+.rtc-active-bar {
+  padding: 10px 14px;
+  background: #172433;
+  border-bottom: 2px solid #C85A17;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rtc-active-bar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rtc-active-bar-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #C85A17;
+  letter-spacing: 0.5px;
+}
+
+.rtc-active-bar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rtc-active-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.rtc-btn-action {
+  background: #C85A17;
+  color: #FFFFFF;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rtc-btn-action:hover {
+  background: #E0671E;
+}
+
+.rtc-btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Toolbar */
 .rtc-toolbar {
   padding: 10px 16px;

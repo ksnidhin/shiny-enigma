@@ -1,18 +1,20 @@
-// RetroTimeCo Collector — Content Script
+// RetroTimeCo Collector — Safe Non-Intrusive Content Script
 // Runs on https://www.instagram.com/*
+// STRICT DESIGN RULE: 100% read-only on Instagram's DOM tree. Never append, modify, or delete
+// any child elements inside Instagram's React containers (<a>, <article>, <div>, etc.).
 
 (function () {
   "use strict";
 
-  // Prevent multiple script initializations
   if (window.__RTC_COLLECTOR_LOADED__) return;
   window.__RTC_COLLECTOR_LOADED__ = true;
 
-  console.log("RetroTimeCo Collector content script loaded.");
+  console.log("RetroTimeCo Collector: Content script initialized in safe read-only mode.");
 
   // Local state cache
   let queueState = [];
   let historyState = [];
+  let pollTimer = null;
 
   // Helper: Extract shortcode / post ID from URL
   function extractPostId(url) {
@@ -84,15 +86,18 @@
     return matches ? Array.from(new Set(matches.map((h) => h.toLowerCase()))) : [];
   }
 
-  // Helper: Parse active post details from an article or dialog element
-  function parsePostElement(articleEl) {
-    if (!articleEl) return null;
+  // Helper: Read-only parse of active open post
+  function parseCurrentPost() {
+    const dialogOrArticle =
+      document.querySelector('div[role="dialog"] article') ||
+      document.querySelector("article");
 
-    // 1. Post ID and URL
     let postId = null;
-    const postLink = articleEl.querySelector('a[href*="/p/"], a[href*="/reel/"]');
-    if (postLink) {
-      postId = extractPostId(postLink.getAttribute("href"));
+    if (dialogOrArticle) {
+      const postLink = dialogOrArticle.querySelector('a[href*="/p/"], a[href*="/reel/"]');
+      if (postLink) {
+        postId = extractPostId(postLink.getAttribute("href"));
+      }
     }
     if (!postId) {
       postId = extractPostId(window.location.pathname);
@@ -101,42 +106,41 @@
 
     const postUrl = `https://www.instagram.com/p/${postId}/`;
 
-    // 2. Caption
+    // Extract caption
     let caption = "";
-    // Instagram typically houses the author caption inside an h1 or the first comment element
-    const captionEl =
-      articleEl.querySelector("h1") ||
-      articleEl.querySelector('span[class*="_ap3a"]') ||
-      articleEl.querySelector('div[data-testid="post-comment-root"] span');
+    if (dialogOrArticle) {
+      const captionEl =
+        dialogOrArticle.querySelector("h1") ||
+        dialogOrArticle.querySelector('span[class*="_ap3a"]') ||
+        dialogOrArticle.querySelector('div[data-testid="post-comment-root"] span');
 
-    if (captionEl) {
-      caption = captionEl.innerText || captionEl.textContent || "";
-    } else {
-      // Fallback: look through comment spans
-      const spans = articleEl.querySelectorAll("article span");
-      for (const s of spans) {
-        if (s.innerText && s.innerText.length > 30) {
-          caption = s.innerText;
-          break;
+      if (captionEl) {
+        caption = captionEl.innerText || captionEl.textContent || "";
+      } else {
+        const spans = dialogOrArticle.querySelectorAll("span");
+        for (const s of spans) {
+          if (s.innerText && s.innerText.length > 30) {
+            caption = s.innerText;
+            break;
+          }
         }
       }
     }
 
-    // 3. Posting Date
+    // Extract timestamp
     let postedAt = null;
-    const timeEl = articleEl.querySelector("time[datetime]");
-    if (timeEl) {
-      postedAt = timeEl.getAttribute("datetime");
+    if (dialogOrArticle) {
+      const timeEl = dialogOrArticle.querySelector("time[datetime]");
+      if (timeEl) postedAt = timeEl.getAttribute("datetime");
     }
 
-    // 4. Images Extraction (including carousels)
+    // Extract images
     const images = [];
     const seenUrls = new Set();
+    const targetRoot = dialogOrArticle || document;
+    const imgEls = targetRoot.querySelectorAll('img[style*="object-fit"], div[role="button"] img, ul li img, img');
 
-    // Look for all post images (ignore avatars, emojis)
-    const imgEls = articleEl.querySelectorAll('img[style*="object-fit"], div[role="button"] img, ul li img, img');
     imgEls.forEach((img) => {
-      // Filter out small avatars / icons
       const rect = img.getBoundingClientRect();
       const isAvatar =
         (rect.width > 0 && rect.width < 120) ||
@@ -153,7 +157,6 @@
       }
     });
 
-    // 5. Price & Status
     const { detected_price, raw_price_string, is_sold } = extractPriceAndStatus(caption);
     const hashtags = extractHashtags(caption);
 
@@ -172,7 +175,77 @@
     };
   }
 
-  // Toast notification in page
+  // Helper: Read-only parse of visible posts in the feed / grid
+  function parseVisibleGridPosts() {
+    const postLinks = document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]');
+    const posts = [];
+    const seen = new Set();
+
+    postLinks.forEach((link) => {
+      const postId = extractPostId(link.getAttribute("href"));
+      if (!postId || seen.has(postId)) return;
+      seen.add(postId);
+
+      const inQueue = queueState.some((p) => p.post_id === postId);
+      const inHistory = historyState.some((h) => (typeof h === "string" ? h : h.post_id) === postId);
+
+      const img = link.querySelector("img");
+      const bestImg = getBestImageUrl(img);
+      const altText = img?.alt || "";
+      const { detected_price, is_sold } = extractPriceAndStatus(altText);
+
+      posts.push({
+        post_id: postId,
+        url: `https://www.instagram.com/p/${postId}/`,
+        caption: altText,
+        hashtags: extractHashtags(altText),
+        posted_at: new Date().toISOString(),
+        images: bestImg ? [bestImg] : [],
+        image_count: bestImg ? 1 : 0,
+        is_carousel: false,
+        detected_price,
+        is_sold,
+        status: inQueue ? "queued" : inHistory ? "exported" : "uncollected",
+      });
+    });
+
+    return posts;
+  }
+
+  // Safely auto-step through carousel arrows to load all images into memory
+  async function autoScanCarousel() {
+    showToast("Scanning carousel slides...");
+    const dialogOrArticle =
+      document.querySelector('div[role="dialog"] article') ||
+      document.querySelector("article");
+
+    if (!dialogOrArticle) {
+      showToast("No active post dialog found.", "error");
+      return null;
+    }
+
+    let clicks = 0;
+    while (clicks < 10) {
+      const nextBtn =
+        dialogOrArticle.querySelector('button[aria-label="Next"]') ||
+        dialogOrArticle.querySelector('button[aria-label="Go to next slide"]') ||
+        dialogOrArticle.querySelector('button._afxw');
+      if (!nextBtn) break;
+      nextBtn.click();
+      clicks++;
+      await new Promise((r) => setTimeout(r, 400));
+    }
+
+    const updated = parseCurrentPost();
+    if (updated) {
+      showToast(`Scan complete: ${updated.images.length} photos ready!`);
+      updateDockState();
+      return updated;
+    }
+    return null;
+  }
+
+  // Toast notification (appended only to body, completely isolated)
   function showToast(text, type = "info") {
     const existing = document.getElementById("rtc-toast");
     if (existing) existing.remove();
@@ -195,31 +268,21 @@
   // Sync state from background storage
   async function syncState() {
     return new Promise((resolve) => {
+      if (!chrome.runtime?.id) return resolve();
       chrome.runtime.sendMessage({ type: "GET_STATE" }, (res) => {
+        if (chrome.runtime.lastError) return resolve();
         if (res && res.success && res.data) {
           queueState = res.data.queue || [];
           historyState = res.data.history || [];
-          updateDockCount();
-          updateGridBadges();
-          updateActiveBanner();
+          updateDockState();
         }
         resolve();
       });
     });
   }
 
-  // Check status of a post ID
-  function getPostStatus(postId) {
-    if (!postId) return "uncollected";
-    const inQueue = queueState.some((p) => p.post_id === postId);
-    if (inQueue) return "queued";
-    const inHistory = historyState.some((h) => (typeof h === "string" ? h : h.post_id) === postId);
-    if (inHistory) return "exported";
-    return "uncollected";
-  }
-
-  // 1. Floating Bottom Dock UI
-  function renderDock() {
+  // Create isolated Floating Dock (appended once to document.body, does NOT touch Instagram React tree)
+  function createFloatingDock() {
     if (document.getElementById("rtc-collector-dock")) return;
 
     const dock = document.createElement("div");
@@ -230,304 +293,193 @@
         <span>RetroTimeCo</span>
         <span class="rtc-dock-counter" id="rtc-dock-count">0</span>
       </div>
-      <div class="rtc-dock-actions">
-        <button class="rtc-dock-btn" id="rtc-dock-collect-page" title="Collect all visible posts on this page">
-          + Collect Visible
-        </button>
-        <button class="rtc-dock-btn rtc-dock-btn-primary" id="rtc-dock-open-sidepanel" title="Open Collector Dashboard">
-          Dashboard ↗
-        </button>
+      <div class="rtc-dock-context" id="rtc-dock-context-text">Ready</div>
+      <div class="rtc-dock-actions" id="rtc-dock-actions">
+        <!-- Dynamic contextual buttons populated by updateDockState -->
       </div>
     `;
 
     document.body.appendChild(dock);
+    updateDockState();
+  }
+
+  // Update floating dock content based on current page state
+  function updateDockState() {
+    const dock = document.getElementById("rtc-collector-dock");
+    if (!dock) return;
+
+    const countEl = document.getElementById("rtc-dock-count");
+    if (countEl) countEl.textContent = String(queueState.length);
+
+    const contextEl = document.getElementById("rtc-dock-context-text");
+    const actionsEl = document.getElementById("rtc-dock-actions");
+    if (!contextEl || !actionsEl) return;
+
+    const currentPost = parseCurrentPost();
+
+    if (currentPost) {
+      const inQueue = queueState.some((p) => p.post_id === currentPost.post_id);
+      const inHistory = historyState.some((h) => (typeof h === "string" ? h : h.post_id) === currentPost.post_id);
+
+      const priceStr = currentPost.detected_price
+        ? `₹${currentPost.detected_price.toLocaleString("en-IN")}`
+        : "";
+      const statusBadge = inQueue
+        ? '<span class="rtc-status-tag queued">Queued</span>'
+        : inHistory
+        ? '<span class="rtc-status-tag exported">Exported</span>'
+        : "";
+
+      contextEl.innerHTML = `
+        <span class="rtc-dock-post-id">#${currentPost.post_id}</span>
+        ${priceStr ? `<span class="rtc-dock-price">${priceStr}</span>` : ""}
+        <span class="rtc-dock-photos">📷 ${currentPost.image_count}</span>
+        ${statusBadge}
+      `;
+
+      actionsEl.innerHTML = `
+        ${
+          currentPost.is_carousel
+            ? `<button class="rtc-dock-btn" id="rtc-dock-scan-carousel" title="Scan all carousel slides">Scan Carousel</button>`
+            : ""
+        }
+        <button class="rtc-dock-btn ${inQueue ? "" : "rtc-dock-btn-primary"}" id="rtc-dock-collect-post">
+          ${inQueue ? "✓ In Queue" : "+ Add Post"}
+        </button>
+        <button class="rtc-dock-btn" id="rtc-dock-open-sidepanel" title="Open Collector Dashboard">
+          Dashboard ↗
+        </button>
+      `;
+
+      // Event handlers
+      document.getElementById("rtc-dock-scan-carousel")?.addEventListener("click", async () => {
+        await autoScanCarousel();
+      });
+
+      document.getElementById("rtc-dock-collect-post")?.addEventListener("click", () => {
+        const fresh = parseCurrentPost();
+        if (fresh) {
+          chrome.runtime.sendMessage({ type: "ADD_POST", post: fresh }, (res) => {
+            if (res && res.success) {
+              showToast(`Added #${fresh.post_id} (${fresh.images.length} photos) to queue!`);
+              syncState();
+            } else {
+              showToast(res?.error || "Already in queue", "info");
+            }
+          });
+        }
+      });
+    } else {
+      // Profile or feed view
+      const visible = parseVisibleGridPosts();
+      const uncollectedCount = visible.filter((p) => p.status === "uncollected").length;
+
+      contextEl.innerHTML = `<span>${visible.length} watches visible (${uncollectedCount} new)</span>`;
+
+      actionsEl.innerHTML = `
+        <button class="rtc-dock-btn ${uncollectedCount > 0 ? "rtc-dock-btn-primary" : ""}" id="rtc-dock-collect-all">
+          + Collect Visible (${uncollectedCount})
+        </button>
+        <button class="rtc-dock-btn" id="rtc-dock-open-sidepanel" title="Open Collector Dashboard">
+          Dashboard ↗
+        </button>
+      `;
+
+      document.getElementById("rtc-dock-collect-all")?.addEventListener("click", () => {
+        const uncollected = visible.filter((p) => p.status === "uncollected");
+        if (uncollected.length === 0) {
+          showToast("All visible posts on screen are already collected.");
+          return;
+        }
+
+        chrome.runtime.sendMessage({ type: "ADD_POSTS_BULK", posts: uncollected }, (res) => {
+          if (res && res.success) {
+            showToast(`Added ${res.added} watch posts to queue!`);
+            syncState();
+          }
+        });
+      });
+    }
 
     document.getElementById("rtc-dock-open-sidepanel")?.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "OPEN_SIDEPANEL" });
     });
-
-    document.getElementById("rtc-dock-collect-page")?.addEventListener("click", () => {
-      collectVisibleGridPosts();
-    });
   }
 
-  function updateDockCount() {
-    const countEl = document.getElementById("rtc-dock-count");
-    if (countEl) {
-      countEl.textContent = String(queueState.length);
-    }
+  // Safe periodic polling: check URL/DOM state every 800ms (100% read-only, NO mutations)
+  function startSafePolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(() => {
+      updateDockState();
+    }, 800);
   }
 
-  // 2. In-Post Banner UI (For active opened modal or /p/ page)
-  function injectPostBanner() {
-    const dialogOrArticle =
-      document.querySelector('div[role="dialog"] article') ||
-      document.querySelector("article");
-
-    if (!dialogOrArticle) return;
-    if (dialogOrArticle.querySelector(".rtc-post-banner")) return;
-
-    const postData = parsePostElement(dialogOrArticle);
-    if (!postData) return;
-
-    const status = getPostStatus(postData.post_id);
-
-    const banner = document.createElement("div");
-    banner.className = "rtc-post-banner";
-    banner.dataset.postId = postData.post_id;
-
-    let statusBadgeHtml = "";
-    if (status === "queued") {
-      statusBadgeHtml = `<span class="rtc-badge rtc-badge-status-collected">✓ In Queue</span>`;
-    } else if (status === "exported") {
-      statusBadgeHtml = `<span class="rtc-badge rtc-badge-status-exported">✓ Already Exported</span>`;
-    }
-
-    const priceHtml = postData.detected_price
-      ? `<span class="rtc-badge rtc-badge-price">₹${postData.detected_price.toLocaleString("en-IN")}</span>`
-      : "";
-
-    const soldHtml = postData.is_sold
-      ? `<span class="rtc-badge rtc-badge-sold">SOLD</span>`
-      : "";
-
-    banner.innerHTML = `
-      <div class="rtc-post-banner-info">
-        <span class="rtc-badge rtc-badge-id">#${postData.post_id}</span>
-        <span class="rtc-badge rtc-badge-photos">📷 ${postData.image_count} photos</span>
-        ${priceHtml}
-        ${soldHtml}
-        ${statusBadgeHtml}
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        ${postData.is_carousel ? `
-          <button class="rtc-dock-btn" id="rtc-btn-scan-carousel" title="Scan through all carousel images">
-            Scan Carousel
-          </button>
-        ` : ''}
-        <button class="rtc-dock-btn rtc-dock-btn-primary" id="rtc-btn-collect-active">
-          ${status === "queued" ? "✓ Queued" : "+ Collect Post"}
-        </button>
-      </div>
-    `;
-
-    // Prepend banner to article
-    dialogOrArticle.insertBefore(banner, dialogOrArticle.firstChild);
-
-    // Event handlers
-    banner.querySelector("#rtc-btn-collect-active")?.addEventListener("click", async () => {
-      const freshPost = parsePostElement(dialogOrArticle);
-      if (freshPost) {
-        chrome.runtime.sendMessage({ type: "ADD_POST", post: freshPost }, (res) => {
-          if (res && res.success) {
-            showToast(`Added #${freshPost.post_id} (${freshPost.images.length} images) to queue!`);
-            syncState();
-          } else {
-            showToast(res?.error || "Could not add post", "error");
-          }
-        });
-      }
-    });
-
-    banner.querySelector("#rtc-btn-scan-carousel")?.addEventListener("click", async () => {
-      await autoScanCarousel(dialogOrArticle);
-    });
-  }
-
-  function updateActiveBanner() {
-    const banner = document.querySelector(".rtc-post-banner");
-    if (!banner) return;
-    const postId = banner.dataset.postId;
-    const status = getPostStatus(postId);
-    const btn = banner.querySelector("#rtc-btn-collect-active");
-    if (btn) {
-      btn.textContent = status === "queued" ? "✓ Queued" : "+ Collect Post";
-    }
-  }
-
-  // Automatically steps through carousel arrows to force-load all images into DOM
-  async function autoScanCarousel(articleEl) {
-    showToast("Scanning carousel slides...");
-    const nextBtn =
-      articleEl.querySelector('button[aria-label="Next"]') ||
-      articleEl.querySelector('button[aria-label="Go to next slide"]') ||
-      articleEl.querySelector('button._afxw');
-
-    if (!nextBtn) {
-      showToast("All visible slides detected.");
-      return;
-    }
-
-    let clicks = 0;
-    while (clicks < 10) {
-      const btn =
-        articleEl.querySelector('button[aria-label="Next"]') ||
-        articleEl.querySelector('button[aria-label="Go to next slide"]') ||
-        articleEl.querySelector('button._afxw');
-      if (!btn) break;
-      btn.click();
-      clicks++;
-      await new Promise((r) => setTimeout(r, 450));
-    }
-
-    const updated = parsePostElement(articleEl);
-    showToast(`Scan complete: ${updated.images.length} images found.`);
-    // Update banner photo badge
-    const badge = articleEl.querySelector(".rtc-badge-photos");
-    if (badge) badge.textContent = `📷 ${updated.images.length} photos`;
-  }
-
-  // 3. Grid View Overlay Badges
-  function updateGridBadges() {
-    const postLinks = document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]');
-    postLinks.forEach((link) => {
-      const postId = extractPostId(link.getAttribute("href"));
-      if (!postId) return;
-
-      // Ensure link container has relative positioning
-      if (link.style.position !== "relative" && getComputedStyle(link).position === "static") {
-        link.style.position = "relative";
-      }
-
-      let badge = link.querySelector(".rtc-grid-item-badge");
-      const status = getPostStatus(postId);
-
-      if (!badge) {
-        badge = document.createElement("div");
-        badge.className = `rtc-grid-item-badge ${status}`;
-        badge.title = "Click to toggle collection for RetroTimeCo";
-        badge.innerHTML = status === "queued" ? "✓ Queued" : status === "exported" ? "✓ Exported" : "+ RTC";
-        link.appendChild(badge);
-
-        badge.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleGridPostCollection(postId, link);
-        });
-      } else {
-        badge.className = `rtc-grid-item-badge ${status}`;
-        badge.innerHTML = status === "queued" ? "✓ Queued" : status === "exported" ? "✓ Exported" : "+ RTC";
-      }
-    });
-  }
-
-  async function toggleGridPostCollection(postId, linkEl) {
-    const status = getPostStatus(postId);
-    if (status === "queued") {
-      chrome.runtime.sendMessage({ type: "REMOVE_POST", post_id: postId }, () => {
-        showToast(`Removed #${postId} from queue.`);
-        syncState();
-      });
-    } else {
-      // Gather thumbnail preview data
-      const img = linkEl.querySelector("img");
-      const bestImg = getBestImageUrl(img);
-      const post = {
-        post_id: postId,
-        url: `https://www.instagram.com/p/${postId}/`,
-        caption: img?.alt || "",
-        hashtags: extractHashtags(img?.alt || ""),
-        posted_at: new Date().toISOString(),
-        images: bestImg ? [bestImg] : [],
-        image_count: bestImg ? 1 : 0,
-        is_carousel: false,
-        ...extractPriceAndStatus(img?.alt || ""),
-      };
-
-      chrome.runtime.sendMessage({ type: "ADD_POST", post }, (res) => {
-        if (res && res.success) {
-          showToast(`Added #${postId} to queue!`);
-          syncState();
-        }
-      });
-    }
-  }
-
-  // Bulk collect all visible posts on page
-  async function collectVisibleGridPosts() {
-    const postLinks = document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]');
-    const posts = [];
-    const seen = new Set();
-
-    postLinks.forEach((link) => {
-      const postId = extractPostId(link.getAttribute("href"));
-      if (!postId || seen.has(postId)) return;
-      seen.add(postId);
-
-      if (getPostStatus(postId) === "uncollected") {
-        const img = link.querySelector("img");
-        const bestImg = getBestImageUrl(img);
-        posts.push({
-          post_id: postId,
-          url: `https://www.instagram.com/p/${postId}/`,
-          caption: img?.alt || "",
-          hashtags: extractHashtags(img?.alt || ""),
-          posted_at: new Date().toISOString(),
-          images: bestImg ? [bestImg] : [],
-          image_count: bestImg ? 1 : 0,
-          is_carousel: false,
-          ...extractPriceAndStatus(img?.alt || ""),
-        });
-      }
-    });
-
-    if (posts.length === 0) {
-      showToast("No new uncollected posts visible on screen.");
-      return;
-    }
-
-    chrome.runtime.sendMessage({ type: "ADD_POSTS_BULK", posts }, (res) => {
-      if (res && res.success) {
-        showToast(`Added ${res.added} posts to collection queue!`);
-        syncState();
-      }
-    });
-  }
-
-  // Periodic DOM Observer to react to Instagram SPA navigation & modals
-  const observer = new MutationObserver(() => {
-    injectPostBanner();
-    updateGridBadges();
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Handle messages from popup or sidepanel
+  // Handle messages from Side Panel and Popup
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "CHECK_ACTIVE_POST") {
-      const dialogOrArticle =
-        document.querySelector('div[role="dialog"] article') ||
-        document.querySelector("article");
-      const post = parsePostElement(dialogOrArticle);
-      sendResponse({ hasActivePost: Boolean(post), postId: post?.post_id || null });
-      return true;
-    }
-
-    if (message.type === "COLLECT_CURRENT_OPEN_POST") {
-      const dialogOrArticle =
-        document.querySelector('div[role="dialog"] article') ||
-        document.querySelector("article");
-      const post = parsePostElement(dialogOrArticle);
-      if (post) {
-        chrome.runtime.sendMessage({ type: "ADD_POST", post }, (res) => {
-          syncState();
-          sendResponse(res);
+    switch (message.type) {
+      case "CHECK_ACTIVE_POST": {
+        const currentPost = parseCurrentPost();
+        sendResponse({
+          hasActivePost: Boolean(currentPost),
+          postId: currentPost?.post_id || null,
         });
-      } else {
-        sendResponse({ success: false, error: "No post currently open on screen" });
+        return true;
       }
-      return true;
-    }
 
-    if (message.type === "COLLECT_VISIBLE_POSTS") {
-      collectVisibleGridPosts().then(() => sendResponse({ success: true }));
-      return true;
+      case "GET_ACTIVE_POST_DATA": {
+        const currentPost = parseCurrentPost();
+        const visiblePosts = parseVisibleGridPosts();
+        sendResponse({
+          currentPost,
+          visibleCount: visiblePosts.length,
+          uncollectedCount: visiblePosts.filter((p) => p.status === "uncollected").length,
+          visiblePosts,
+        });
+        return true;
+      }
+
+      case "COLLECT_CURRENT_OPEN_POST": {
+        const post = parseCurrentPost();
+        if (post) {
+          chrome.runtime.sendMessage({ type: "ADD_POST", post }, (res) => {
+            syncState();
+            sendResponse(res);
+          });
+        } else {
+          sendResponse({ success: false, error: "No watch post open on screen." });
+        }
+        return true;
+      }
+
+      case "COLLECT_VISIBLE_POSTS": {
+        const visible = parseVisibleGridPosts();
+        const uncollected = visible.filter((p) => p.status === "uncollected");
+        if (uncollected.length === 0) {
+          sendResponse({ success: false, error: "No uncollected posts found." });
+        } else {
+          chrome.runtime.sendMessage({ type: "ADD_POSTS_BULK", posts: uncollected }, (res) => {
+            syncState();
+            sendResponse(res);
+          });
+        }
+        return true;
+      }
+
+      case "SCAN_CAROUSEL": {
+        autoScanCarousel().then((updated) => {
+          sendResponse({ success: Boolean(updated), post: updated });
+        });
+        return true;
+      }
+
+      default:
+        break;
     }
   });
 
-  // Initial setup
-  renderDock();
-  syncState();
-  injectPostBanner();
-  updateGridBadges();
+  // Safe initialization
+  syncState().then(() => {
+    createFloatingDock();
+    startSafePolling();
+  });
 })();
