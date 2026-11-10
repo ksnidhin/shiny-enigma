@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { fetchWatches, WatchProduct } from "@/lib/api"
 import { WatchCard } from "./WatchCard"
@@ -102,12 +103,19 @@ function WatchCatalogGridContent({
   ) => {
     setLoading(true)
     try {
+      const rawLower = (collectionSlug || "").toLowerCase()
+      const isBrandCol = ["seiko", "seiko-vintage", "citizen", "citizen-vintage", "orient", "orient-vintage"].includes(rawLower)
+      const effectiveBrand = brandVal !== "all" ? brandVal : (isBrandCol ? rawLower.replace("-vintage", "") : undefined)
+      const effectiveCol = ["vintage-watches", "all"].includes(rawLower) || isBrandCol
+        ? undefined
+        : (["hmt", "hmt-vintage"].includes(rawLower) ? "hmt-watches" : (rawLower === "casio-vintage" ? "casio" : collectionSlug))
+
       if (savedVal) {
         // Saved bookmarks require client-side matching with local storage IDs
         const savedIds = getSavedIds()
         const res = await fetchWatches({
-          collection: collectionSlug === "all" ? undefined : collectionSlug,
-          brand: brandVal !== "all" ? brandVal : undefined,
+          collection: effectiveCol,
+          brand: effectiveBrand,
           condition: conditionVal !== "all" ? conditionVal : undefined,
           in_stock: inStockVal || undefined,
           sort: sortVal,
@@ -146,8 +154,8 @@ function WatchCatalogGridContent({
         }
 
         const res = await fetchWatches({
-          collection: collectionSlug === "all" ? undefined : collectionSlug,
-          brand: brandVal !== "all" ? brandVal : undefined,
+          collection: effectiveCol,
+          brand: effectiveBrand,
           condition: conditionVal !== "all" ? conditionVal : undefined,
           min_price,
           max_price,
@@ -359,6 +367,15 @@ function WatchCatalogGridContent({
   return (
     <div ref={catalogTopRef} className="container mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12">
       
+      {/* Crawlable Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 font-mono text-[11px] text-[#5C646D] uppercase tracking-wider overflow-x-auto whitespace-nowrap">
+        <Link href="/" className="hover:text-[#C85A17] transition-colors">HOME</Link>
+        <span>/</span>
+        <Link href="/collections/all" className="hover:text-[#C85A17] transition-colors">COLLECTIONS</Link>
+        <span>/</span>
+        <span className="text-[#11161B] font-bold">{showSavedOnly ? "SAVED" : collectionTitle}</span>
+      </nav>
+
       {/* 1. Archive Header */}
       <div className="py-6 sm:py-10 mb-8 border-b border-[#D8D1C5]">
         <div className="flex items-center gap-2 mb-3">

@@ -190,7 +190,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           <span>/</span>
           <Link href="/collections/all" className="hover:text-[#11161B] transition-colors">THE ARCHIVE</Link>
           <span>/</span>
-          <Link href={`/collections/${watch.collection}`} className="hover:text-[#11161B] transition-colors uppercase">
+          <Link href={`/collections/${watch.collection || "vintage-watches"}`} className="hover:text-[#11161B] transition-colors uppercase">
             {watch.brand || watch.collection_title || "TIMEPIECES"}
           </Link>
         </nav>
@@ -204,7 +204,7 @@ export function WatchProductDetail({ watch, related }: WatchProductDetailProps) 
           >
             <Image
               src={activeImage}
-              alt={watch.name}
+              alt={`Vintage ${watch.brand} ${watch.name} - photograph ${activeImageIndex + 1}`}
               fill
               priority
               sizes="(max-width: 768px) 100vw, 900px"

@@ -2,9 +2,14 @@ import React from "react"
 import Link from "next/link"
 import { ShieldCheck, Search, Wrench, Award, ArrowRight } from "lucide-react"
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://retrotimeco.in"
+
 export const metadata = {
-  title: "Authenticity Guarantee | RetroTimeCo",
-  description: "Learn about our rigorous 3-step authentication and regulation process for all vintage timepieces.",
+  title: "Authenticity & Inspection Standards",
+  description: "Learn about our rigorous 3-step authentication, mechanical inspection, and timegrapher regulation process for all vintage timepieces in India.",
+  alternates: {
+    canonical: `${siteUrl}/pages/authenticity`,
+  },
 }
 
 export default function AuthenticityPage() {

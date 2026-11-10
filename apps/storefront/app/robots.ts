@@ -7,7 +7,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/admin/', '/jewlandniggesh', '/jewlandniggesh/', '/api'],
+      disallow: [
+        '/admin',
+        '/admin/',
+        '/jewlandniggesh',
+        '/jewlandniggesh/',
+        '/api',
+        '/api/',
+        '/cart',
+        '/checkout',
+        '/search',
+      ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   }

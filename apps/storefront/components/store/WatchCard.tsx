@@ -36,7 +36,7 @@ export function WatchCard({ watch }: { watch: WatchProduct }) {
         <Link href={`/products/${watch.slug}`} className="block w-full h-full">
           <Image
             src={watch.image || (watch.gallery_images && watch.gallery_images[0]) || "/hero_vintage_watch_1785170825322.jpg"}
-            alt={watch.name}
+            alt={`Vintage ${watch.brand} ${watch.name} watch`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"

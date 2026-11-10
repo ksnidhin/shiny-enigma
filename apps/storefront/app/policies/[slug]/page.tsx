@@ -200,12 +200,17 @@ const POLICIES: Record<string, PolicyData> = {
   }
 }
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://retrotimeco.in"
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const policy = POLICIES[slug] || POLICIES.shipping
   return {
-    title: `${policy.title} | RetroTimeCo`,
+    title: policy.title,
     description: policy.subtitle,
+    alternates: {
+      canonical: `${siteUrl}/policies/${slug}`,
+    },
   }
 }
 
